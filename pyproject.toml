@@ -1,0 +1,56 @@
+[build-system]
+requires = ["flit_core >=3.2"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "freva-stats-service"
+authors = [{name = "DKRZ, Clint", email = "freva@dkrz.de"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+               "Development Status :: 3 - Alpha",
+               "Environment :: Console",
+               "Intended Audience :: Developers",
+               "Intended Audience :: Science/Research",
+               "License :: OSI Approved :: BSD License",
+               "Operating System :: POSIX :: Linux",
+               "Programming Language :: Python :: 3",
+]
+dynamic = ["version"]
+description = "Collect any kind of freva statistics."
+requires-python = ">=3.11"
+dependencies = [ "fastapi",
+             "jsonschema",
+             "python-multipart",
+             "databrowser@git+https://github.com/FREVA-CLINT/databrowserAPI.git",
+             "python-jose[cryptography]",
+             "passlib[bcrypt]",
+             "typer",
+             "uvicorn",
+             "rich",
+             "motor",
+             "requests",
+]
+[project.optional-dependencies]
+docs = [
+    "pydata-sphinx-theme",
+    "sphinx",
+    "sphinx-copybutton",
+    "nbsphinx",
+    "recommonmark",
+    "sphinx_rtd_theme",
+    "ipython",
+    "sphinxcontrib_github_alt",
+]
+test = ["mypy", "black", "isort", "pytest-env", "flake8", "pytest-mypy"]
+
+[project.urls]
+# Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
+Issues = "https://github.com/FREVA-CLINT/freva-stats-service/issues"
+Source = "https://github.com/FREVA-CLINT/freva-stats-service"
+
+[project.scripts]
+stats-service = "freva_stats_service.cli:main"
+
+[package-data]
+freva_stats_service = "*.json.gz"
