@@ -3,7 +3,7 @@
 import gzip
 import json
 from pathlib import Path
-from typing import cast, Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from freva_stats_service import docs
 

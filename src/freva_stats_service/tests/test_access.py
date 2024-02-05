@@ -1,6 +1,7 @@
 """Test for the oauth2 token."""
 
 import os
+
 import pytest
 from fastapi.testclient import TestClient
 

@@ -1,7 +1,7 @@
 """Unit tests for the statistics."""
 
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 import pytest
 from fastapi.testclient import TestClient

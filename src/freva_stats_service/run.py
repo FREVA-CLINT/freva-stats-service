@@ -13,8 +13,8 @@ from .stats import *
 from .utils import (
     create_oauth_token,
     get_oauth_credentials,
-    mongo_client,
     logger,
+    mongo_client,
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

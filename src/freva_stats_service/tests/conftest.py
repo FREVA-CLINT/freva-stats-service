@@ -1,18 +1,18 @@
 """Definition of pytest fixtures."""
 
-from copy import copy
 import os
-from typing import Any, Dict, List, Iterator
+from copy import copy
 from datetime import datetime
+from typing import Any, Dict, Iterator, List
 
-from fastapi.testclient import TestClient
 import mock
-from pymongo.mongo_client import MongoClient
 import pytest
+from fastapi.testclient import TestClient
+from pymongo.mongo_client import MongoClient
 
 from freva_stats_service.run import app
-from freva_stats_service.utils import mongo_client
 from freva_stats_service.tests import read_gunzipped_stats
+from freva_stats_service.utils import mongo_client
 
 
 @pytest.fixture(scope="function")

@@ -6,8 +6,8 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, Optional, Union
 
 import typer
-from rich.prompt import Prompt
 import uvicorn
+from rich.prompt import Prompt
 
 from .logger import Logger
 

@@ -1,12 +1,12 @@
 """Test the command line interface cli."""
 
 from pathlib import Path
-from pytest_mock import MockerFixture
 from tempfile import TemporaryDirectory
 from types import TracebackType
 from typing import Dict
 
 import mock
+from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
 from freva_stats_service.cli import main
