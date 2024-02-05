@@ -21,9 +21,7 @@ from .logger import Logger
 logger = Logger(debug=bool(int(os.environ.get("DEBUG", "0"))))
 
 
-CredentialsType = TypedDict(
-    "CredentialsType", {"password": str, "username": str}
-)
+CredentialsType = TypedDict("CredentialsType", {"password": str, "username": str})
 
 
 class MongoDB:
@@ -49,11 +47,11 @@ class MongoDB:
     @cached_property
     def mongo_url(self) -> str:
         """Construct the url to the mongodb from environment variables."""
-        host = os.environ.get("MONGO_HOST", "localhost:27017")
+        host = os.environ["MONGO_HOST"]
         host, _, m_port = host.partition(":")
         port = m_port or "27017"
-        user = os.environ.get("MONGO_USER", "mongo")
-        passwd = os.environ.get("MONGO_PASSWORD", "secret")
+        user = os.environ["MONGO_USERNAME"]
+        passwd = os.environ["MONGO_PASSWORD"]
         return f"mongodb://{user}:{passwd}@{host}:{port}"
 
 
@@ -88,9 +86,7 @@ async def create_oauth_token(
     else:
         exp = None
 
-    token = jwt.encode(
-        payload.copy(), await define_secret_key(), algorithm="HS256"
-    )
+    token = jwt.encode(payload.copy(), await define_secret_key(), algorithm="HS256")
     return token, exp
 
 
@@ -112,11 +108,7 @@ async def get_query_params(query: str, *redundant_keys: str) -> Dict[str, str]:
     """
 
     query_dict = parse_qs(query)
-    return {
-        k: "&".join(v)
-        for (k, v) in query_dict.items()
-        if k not in redundant_keys
-    }
+    return {k: "&".join(v) for (k, v) in query_dict.items() if k not in redundant_keys}
 
 
 async def get_date_query(
@@ -125,9 +117,7 @@ async def get_date_query(
     """Create a mongo query for dates."""
     query = {}
     defaults = (datetime(1, 1, 1, 0, 0, 0), datetime(9999, 12, 31, 23, 59, 59))
-    for num, (timestamp, operator) in enumerate(
-        zip((before, after), ("$lte", "$gte"))
-    ):
+    for num, (timestamp, operator) in enumerate(zip((before, after), ("$lte", "$gte"))):
         if timestamp is not None:
             try:
                 t_step = parse_time(timestamp, default=defaults[num])
