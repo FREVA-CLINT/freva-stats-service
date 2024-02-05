@@ -10,7 +10,12 @@ from .app import app
 from .docs import start_up
 from .response import TokenResponse
 from .stats import *
-from .utils import create_oauth_token, get_oauth_credentials, mongo_client
+from .utils import (
+    create_oauth_token,
+    get_oauth_credentials,
+    mongo_client,
+    logger,
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
