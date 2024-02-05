@@ -36,8 +36,7 @@ def start(
     mongo_host: str = typer.Option(
         "localhost:27017",
         help=(
-            "Set the mongoDB host sever as fallback for the MONGO_HOST "
-            "env variable."
+            "Set the mongoDB host sever as fallback for the MONGO_HOST " "env variable."
         ),
     ),
     ask_mongo_password: bool = typer.Option(
@@ -85,9 +84,7 @@ def start(
         workers = None
     with NamedTemporaryFile(suffix=".conf", prefix="env") as temp_f:
         Path(temp_f.name).write_text(
-            "\n".join(
-                [f"{k}={os.environ.get(k, v)}" for (k, v) in defaults.items()]
-            ),
+            "\n".join([f"{k}={os.environ.get(k, v)}" for (k, v) in defaults.items()]),
             encoding="utf-8",
         )
         uvicorn.run(
