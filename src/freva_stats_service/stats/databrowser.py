@@ -29,8 +29,8 @@ __all__ = [
 class DataBrowserStatsModel(BaseModel):
     """Stats model for saving databrowser search statistics."""
 
-    metadata: Dict[str, Union[int, str, datetime.datetime]]
-    query: Dict[str, str]
+    metadata: Dict[str, Union[int, str, datetime.datetime]] = None
+    query: Dict[str, str] = None
 
 
 @app.post(
@@ -47,19 +47,10 @@ async def add_databrowser_stats(
         ),
     ],
     payload: DataBrowserStatsModel,
-    access_token: Annotated[
-        str,
-        Header(
-            description="Token for authentication",
-            example="faketoken",
-        ),
-    ] = "",
 ) -> Dict[str, str]:
     """Add new statistics to the databrowser stats."""
-    logger.debug("Validating token: %s", access_token)
-    if project_name == "docs" and access_token == "faketoken":
+    if project_name == "docs":
         return {"status": "Data created successfully"}
-    await validate_token(access_token)
     data = payload.dict()
     logger.debug("Validating data for %s:", payload)
     await validate_databrowser_stats(data)

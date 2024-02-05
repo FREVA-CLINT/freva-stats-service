@@ -1,4 +1,5 @@
 """Collection of utility functions."""
+
 import hashlib
 import os
 import secrets
@@ -21,7 +22,9 @@ from .logger import Logger
 logger = Logger(debug=bool(int(os.environ.get("DEBUG", "0"))))
 
 
-CredentialsType = TypedDict("CredentialsType", {"password": str, "username": str})
+CredentialsType = TypedDict(
+    "CredentialsType", {"password": str, "username": str}
+)
 
 
 class MongoDB:
@@ -58,10 +61,9 @@ class MongoDB:
 async def define_secret_key() -> str:
     """Define the secret key for the web token."""
     return hashlib.sha256(
-        (
-            str(os.environ.get("API_USER", "freva"))
-            + str(os.environ.get("API_PASSWORD", "secret"))
-        ).encode("utf-8")
+        (os.environ["API_USERNAME"] + os.environ["API_PASSWORD"]).encode(
+            "utf-8"
+        )
     ).hexdigest()
 
 
@@ -86,7 +88,9 @@ async def create_oauth_token(
     else:
         exp = None
 
-    token = jwt.encode(payload.copy(), await define_secret_key(), algorithm="HS256")
+    token = jwt.encode(
+        payload.copy(), await define_secret_key(), algorithm="HS256"
+    )
     return token, exp
 
 
@@ -108,7 +112,11 @@ async def get_query_params(query: str, *redundant_keys: str) -> Dict[str, str]:
     """
 
     query_dict = parse_qs(query)
-    return {k: "&".join(v) for (k, v) in query_dict.items() if k not in redundant_keys}
+    return {
+        k: "&".join(v)
+        for (k, v) in query_dict.items()
+        if k not in redundant_keys
+    }
 
 
 async def get_date_query(
@@ -117,7 +125,9 @@ async def get_date_query(
     """Create a mongo query for dates."""
     query = {}
     defaults = (datetime(1, 1, 1, 0, 0, 0), datetime(9999, 12, 31, 23, 59, 59))
-    for num, (timestamp, operator) in enumerate(zip((before, after), ("$lte", "$gte"))):
+    for num, (timestamp, operator) in enumerate(
+        zip((before, after), ("$lte", "$gte"))
+    ):
         if timestamp is not None:
             try:
                 t_step = parse_time(timestamp, default=defaults[num])
@@ -207,6 +217,7 @@ async def validate_databrowser_stats(data: Dict[str, Union[str, int]]) -> None:
             "flavour": {"type": "string"},
             "uniq_key": {"type": "string"},
             "server_status": {"type": "integer"},
+            "date": {"type": "string"},
         },
         "required": ["num_results", "flavour", "uniq_key", "server_status"],
         "additionalProperties": False,

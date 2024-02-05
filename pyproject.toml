@@ -42,7 +42,18 @@ docs = [
     "ipython",
     "sphinxcontrib_github_alt",
 ]
-test = ["mypy", "black", "isort", "pytest-env", "flake8", "pytest-mypy"]
+test = [
+    "mypy",
+    "black",
+    "isort",
+    "flake8",
+    "httpx",
+    "pytest-asyncio",
+    "pytest-env",
+    "pytest-mypy",
+    "pytest-mock",
+    "pytest-cov",
+]
 
 [project.urls]
 # Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
@@ -54,3 +65,18 @@ stats-service = "freva_stats_service.cli:main"
 
 [package-data]
 freva_stats_service = "*.json.gz"
+
+
+[tool.pytest.ini_options]
+env = [
+    "MONGO_HOST=localhost:27017",
+    "MONGO_DB=tests",
+    "MONGO_USERNAME=mongo",
+    "MONGO_PASSWORD=secret",
+    "API_USERNAME=freva",
+    "API_PASSWORD=secreto",
+]
+testspaths = [
+    "tests",
+]
+addopts = "-vv --cov=./src --cov-report=html:coverage_report --junitxml coverage.xml --cov-report xml"

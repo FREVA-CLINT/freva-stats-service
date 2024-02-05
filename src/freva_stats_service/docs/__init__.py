@@ -4,11 +4,12 @@ import gzip
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 from ..utils import mongo_client
 
 
-async def add_databrowser_stats(db_name: str = "docs") -> None:
+async def add_databrowser_stats(db_name: str = "docs") -> int:
     """Add example data for the databrowser query statistics."""
     archive_path = Path(__file__).parent / "databrowser-stats.json.gz"
     collection = mongo_client[f"{db_name}.search_queries"]
@@ -16,10 +17,9 @@ async def add_databrowser_stats(db_name: str = "docs") -> None:
         queries = json.loads(gzip_file.read())
     await collection.delete_many({})
     for query in queries:
-        query["metadata"]["date"] = datetime.fromisoformat(
-            query["metadata"]["date"]
-        )
+        query["metadata"]["date"] = datetime.fromisoformat(query["metadata"]["date"])
         await collection.insert_one(query)
+    return await cast(int, collection.count_documents({}))
 
 
 async def start_up(db_name: str = "docs") -> None:
