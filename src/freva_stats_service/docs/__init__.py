@@ -24,4 +24,7 @@ async def add_databrowser_stats(db_name: str = "docs") -> None:
 
 async def start_up(db_name: str = "docs") -> None:
     """Define startup behaviour."""
-    await add_databrowser_stats()
+    try:
+        await add_databrowser_stats(db_name)
+    except Exception:
+        pass
