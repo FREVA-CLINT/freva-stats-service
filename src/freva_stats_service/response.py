@@ -1,5 +1,6 @@
 """Collection of response models."""
 
+from datetime import datetime
 from typing import Any, AsyncIterator, Dict, Tuple, Union
 
 from databrowser.core import Translator
@@ -40,7 +41,8 @@ async def databrowser_stats_csv_stream(
         mongo_query
     ):
         result = document["metadata"].copy()
-        result["date"] = result["date"].isoformat()
+        if isinstance(result.get("date"), datetime):
+            result["date"] = result["date"].isoformat()
         if not header:
             header = tuple(result.keys()) + tuple(facet_keys)
             yield ",".join(header) + "\n"

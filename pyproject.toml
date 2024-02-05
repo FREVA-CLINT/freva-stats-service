@@ -44,6 +44,7 @@ docs = [
 ]
 test = [
     "mypy",
+    "mock",
     "black",
     "isort",
     "flake8",
@@ -75,6 +76,7 @@ env = [
     "MONGO_PASSWORD=secret",
     "API_USERNAME=freva",
     "API_PASSWORD=secreto",
+    "DEBUG=0"
 ]
 testspaths = [
     "tests",

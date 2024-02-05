@@ -2,12 +2,11 @@
 
 import hashlib
 import os
-import secrets
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from typing import Any, Dict, Optional, Tuple, TypedDict, Union, cast
-from urllib.parse import parse_qs
 
+from bson.objectid import ObjectId
 from dateutil.parser import ParserError
 from dateutil.parser import parse as parse_time
 from fastapi import Depends, HTTPException, status
@@ -94,31 +93,6 @@ async def create_oauth_token(
     return token, exp
 
 
-async def get_query_params(query: str, *redundant_keys: str) -> Dict[str, str]:
-    """Extract query parameters from a query string.
-    The extracted query string does not contain user defined keys.
-
-    Parameters
-    ----------
-    query: str
-        The query string
-    *redundant_keys: str
-        Collection of query keys that should not part of the returned dict
-
-    Returns
-    -------
-    Dict[str, List[str]]: Dict of parsed values without redundant keys.
-
-    """
-
-    query_dict = parse_qs(query)
-    return {
-        k: "&".join(v)
-        for (k, v) in query_dict.items()
-        if k not in redundant_keys
-    }
-
-
 async def get_date_query(
     before: Optional[str] = None, after: Optional[str] = None
 ) -> Dict[str, datetime]:
@@ -142,8 +116,8 @@ async def get_date_query(
 async def get_oauth_credentials() -> CredentialsType:
     """Read the oauth login credentials from the environemnt variables."""
     return {
-        "username": os.environ.get("API_USERNAME", "stats"),
-        "password": os.environ.get("API_PASSWORD", "secret"),
+        "username": os.environ["API_USERNAME"],
+        "password": os.environ["API_PASSWORD"],
     }
 
 
@@ -152,7 +126,7 @@ async def insert_mongo_db_data(
     collection_name: str,
     key: Optional[str] = None,
     **data: Any,
-) -> None:
+) -> str:
     """Insert data into a mongoDB collection.
 
     Parameters
@@ -167,35 +141,33 @@ async def insert_mongo_db_data(
     **data: Any
         The data that is added to the mongoDB collection.
 
+    Returns
+    -------
+    str: the inserted key.
+
     Raises
     ------
     HTTPException: If connection to mongo_db failed.
     """
-    reason = ""
-    if key is None:
-        coro = mongo_client[f"{db_name}.{collection_name}"].insert_one(data)
-    else:
-        coro = mongo_client[f"{db_name}.{collection_name}"].update_one(
-            {"_id": key}, {"$set": data}
-        )
-    result = await coro
     try:
+        if key is None:
+            coro = mongo_client[f"{db_name}.{collection_name}"].insert_one(
+                data
+            )
+        else:
+            coro = mongo_client[f"{db_name}.{collection_name}"].update_one(
+                {"_id": ObjectId(key)}, {"$set": data}
+            )
         result = await coro
     except Exception as error:
         logger.error("Could not add stats to db: %s", error)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Failed to add stats",
         ) from error
-    if key is None and result.inserted_id is None:
-        reason = "Failed to insert data into DB"
-    elif key is not None and result.modified_count == 0:
-        reason = "Failed to update data in DB"
-    if reason:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=reason,
-        )
+    if key is None:
+        key = result.inserted_id
+    return key
 
 
 async def validate_databrowser_stats(data: Dict[str, Union[str, int]]) -> None:
@@ -232,30 +204,6 @@ async def validate_databrowser_stats(data: Dict[str, Union[str, int]]) -> None:
         ) from error
 
 
-async def verify_oauth_credentials(
-    credentials: OAuth2PasswordRequestForm = Depends(),
-) -> OAuth2PasswordRequestForm:
-    oauth_credentials = await get_oauth_credentials()
-    if (
-        credentials.username != oauth_credentials["username"]
-        or credentials.password != oauth_credentials["password"]
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return credentials
-
-
-async def validate_password(password: str) -> None:
-    """Check if the given password is correct."""
-    if not password == os.environ.get("API_PASSWORD", "secrect"):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
-        )
-
-
 async def validate_token(access_token: str) -> None:
     """Validate a given access token."""
     credentials_exception = HTTPException(
@@ -264,12 +212,9 @@ async def validate_token(access_token: str) -> None:
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(
+        _ = jwt.decode(
             access_token, await define_secret_key(), algorithms=["HS256"]
         )
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
     except JWTError:
         raise credentials_exception
 
