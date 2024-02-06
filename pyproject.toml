@@ -49,6 +49,7 @@ test = [
     "isort",
     "flake8",
     "httpx",
+    "pre-commit",
     "pytest-asyncio",
     "pytest-env",
     "pytest-mypy",
