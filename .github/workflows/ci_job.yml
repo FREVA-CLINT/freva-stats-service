@@ -37,8 +37,8 @@ jobs:
           flake8 src/freva_stats_service --count --max-complexity=8 --ignore=F405,W503 --max-line-length=88 --statistics --show-source
       - name: Run Tests
         run: |
-          poetry run python3 -m pytest
-          poetry run python3 -m coverage report
+          python3 -m pytest
+          python3 -m coverage report
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
