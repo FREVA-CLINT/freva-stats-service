@@ -1,7 +1,7 @@
 """The freva storage restAPI 🚀
 
 The freva storage restAPI is a powerful interface designed to interact with a
-database storage systms, providing functionalities to store, query, and
+database storage systems, providing functionalities to store, query, and
 manage statistical data related to user searches in the freva application.
 It is designed with security, flexibility, and ease of use in mind.
 
