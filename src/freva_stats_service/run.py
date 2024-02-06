@@ -10,11 +10,7 @@ from pydantic import Required
 from .app import app
 from .docs import start_up
 from .stats import *  # noqa: F403, F401
-from .utils import (
-    create_oauth_token,
-    get_oauth_credentials,
-    mongo_client,
-)
+from .utils import create_oauth_token, get_oauth_credentials, mongo_client
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
