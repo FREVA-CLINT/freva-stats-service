@@ -24,7 +24,7 @@ def mongo_databrowser_collection() -> Iterator[int]:
         collection = m_client["tests"]["search_queries"]
         try:
             collection.delete_many({})
-            for i, data in enumerate(copy(databrowser_search_stats)):
+            for i, data in enumerate(copy(databrowser_search_stats)[:10]):
                 if i != 9:
                     data["metadata"]["date"] = datetime.fromisoformat(
                         data["metadata"]["date"]
@@ -32,8 +32,6 @@ def mongo_databrowser_collection() -> Iterator[int]:
                 collection.insert_one(
                     {"metadata": data["metadata"], "query": data["query"]}
                 )
-                if i == 9:
-                    break
             yield 10
         finally:
             collection.delete_many({})

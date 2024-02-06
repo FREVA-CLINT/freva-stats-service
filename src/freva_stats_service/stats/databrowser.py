@@ -3,8 +3,9 @@
 import datetime
 from typing import Annotated, Any, Dict, Literal, Optional, Union
 
+import bson
 from fastapi import Header, HTTPException, Path, Query, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 from ..app import app
@@ -50,11 +51,11 @@ async def add_databrowser_stats(
     """Add new statistics to the databrowser stats."""
     if project_name == "docs":
         return {"status": "Data created successfully"}
-    data = payload.dict()
-    logger.debug("Validating data for %s:", payload)
+    data = {k: v for (k, v) in payload.dict().items() if v is not None}
+    logger.debug("Validating data for %s:", data)
     await validate_databrowser_stats(data)
     data["metadata"]["date"] = datetime.datetime.now(tz=datetime.timezone.utc)
-    logger.debug("Adding payload: %s to DB.", payload)
+    logger.debug("Adding payload: %s to DB.", data)
     key = await insert_mongo_db_data(project_name, "search_queries", **data)
     return {
         "status": "Data created successfully",
@@ -64,7 +65,6 @@ async def add_databrowser_stats(
 
 @app.put(
     "/api/stats/{project_name}/databrowser/{stat_id}",
-    status_code=status.HTTP_200_OK,
     tags=["Freva Statistics"],
 )
 async def replace_databrowser_stats(
@@ -76,9 +76,13 @@ async def replace_databrowser_stats(
         ),
     ],
     stat_id: Annotated[
-        str, Path(description="The DB index that shall be replaced.")
+        str,
+        Path(
+            description="The DB index that shall be replaced.",
+            example="1fc3fa0b5a854d21856d4bff",
+        ),
     ],
-    payload: DataBrowserStatsModel,
+    payload: Dict[str, Any],
     access_token: Annotated[
         str,
         Header(
@@ -86,20 +90,25 @@ async def replace_databrowser_stats(
             example="faketoken",
         ),
     ] = "",
-) -> Dict[str, str]:
+) -> JSONResponse:
     """Replace existing statistics in the database."""
     if project_name == "docs" and access_token == "faketoken":
-        return {"status": "Data created successfully"}
+        return JSONResponse(
+            {"status": "Data updated successfully"},
+            status_code=status.HTTP_200_OK,
+        )
     logger.debug("Validating token: %s", access_token)
     await validate_token(access_token)
-    data = payload.dict()
-    logger.debug("Validating data for %s:", payload)
-    await validate_databrowser_stats(data)
-    logger.debug("Updating payload for ID %s: %s to DB.", stat_id, payload)
-    await insert_mongo_db_data(
+    data = {k: v for (k, v) in payload.items() if v is not None}
+    logger.debug("Validating data for %s:", data)
+    await validate_databrowser_stats(data, method="put")
+    logger.debug("Updating payload for ID %s: %s to DB.", stat_id, data)
+    _ = await insert_mongo_db_data(
         project_name, "search_queries", key=stat_id, **data
     )
-    return {"status": "Data updated successfully"}
+    return JSONResponse(
+        {"status": "Data updated successfully"}, status_code=status.HTTP_200_OK
+    )
 
 
 @app.get("/api/stats/{project_name}/databrowser", tags=["Freva Statistics"])
@@ -222,8 +231,8 @@ async def query_databrowser(
     combinations of a model and a variable.
 
     """
-    logger.debug("Validating token: %s", access_token)
     if project_name != "docs" and access_token != "faketoken":
+        logger.debug("Validating token: %s", access_token)
         await validate_token(access_token)
     query_filters = {
         "project": project,
@@ -274,3 +283,51 @@ async def query_databrowser(
             "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
         },
     )
+
+
+@app.delete(
+    "/api/stats/{project_name}/databrowser/{stat_id}",
+    tags=["Freva Statistics"],
+)
+async def delete_statistics_by_index(
+    project_name: Annotated[
+        str,
+        Path(
+            description="Name of the freva instance for gathering information.",
+            example="docs",
+        ),
+    ],
+    stat_id: Annotated[
+        str,
+        Path(
+            description="The DB index that shall be replaced.",
+            example="1fc3fa0b5a854d21856d4bff",
+        ),
+    ],
+    access_token: Annotated[
+        str,
+        Header(description="Token for authentication", example="faketoken"),
+    ] = "",
+) -> Response:
+    """Delete existing statistics in the database by a given key."""
+    if project_name == "docs" and access_token == "faketoken":
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    logger.debug("Validating token")
+    await validate_token(access_token)
+    logger.debug("Deleting item")
+    try:
+        _id = bson.objectid.ObjectId(stat_id)
+    except bson.errors.InvalidId as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Invalid id: {stat_id}",
+        ) from error
+    result = await mongo_client[f"{project_name}.search_queries"].delete_one(
+        {"_id": _id}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"{stat_id} not found.",
+        )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

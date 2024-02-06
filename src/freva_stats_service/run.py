@@ -46,13 +46,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     expiry = 1
-    try:
-        for key, value in parse_qsl(str(request.query_params)):
-            if key == "expires_in":
+    for key, value in parse_qsl(str(request.query_params)):
+        if key == "expires_in":
+            try:
                 expiry = int(value)
                 break
-    except Exception:
-        pass
+            except (ValueError, TypeError):
+                pass
     token, expires_at = await create_oauth_token(credentials.username, expiry)
     return JSONResponse(
         content={

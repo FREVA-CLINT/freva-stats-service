@@ -4,9 +4,21 @@ import hashlib
 import os
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
-from typing import Any, Dict, Optional, Tuple, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    NotRequired,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
+from bson.errors import InvalidId
 from bson.objectid import ObjectId
+from databrowser.core import Translator
 from dateutil.parser import ParserError
 from dateutil.parser import parse as parse_time
 from fastapi import HTTPException, status
@@ -22,6 +34,16 @@ logger = Logger(debug=bool(int(os.environ.get("DEBUG", "0"))))
 
 CredentialsType = TypedDict(
     "CredentialsType", {"password": str, "username": str}
+)
+
+SchemaType = TypedDict(
+    "SchemaType",
+    {
+        "type": str,
+        "properties": Dict[str, Any],
+        "required": NotRequired[List[str]],
+        "additionalProperties": bool,
+    },
 )
 
 
@@ -148,40 +170,54 @@ async def insert_mongo_db_data(
     ------
     HTTPException: If connection to mongo_db failed.
     """
-    try:
-        if key is None:
-            coro = mongo_client[f"{db_name}.{collection_name}"].insert_one(
-                data
-            )
-        else:
+    if key is None:
+        coro = mongo_client[f"{db_name}.{collection_name}"].insert_one(data)
+    else:
+        try:
             coro = mongo_client[f"{db_name}.{collection_name}"].update_one(
                 {"_id": ObjectId(key)}, {"$set": data}
             )
-        result = await coro
-    except Exception as error:
-        logger.error("Could not add stats to db: %s", error)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Failed to add stats",
-        ) from error
+        except InvalidId as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Invalid ID",
+            ) from error
+    result = await coro
     if key is None:
         key = result.inserted_id
+    else:
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_304_NOT_MODIFIED,
+                detail="No changes were made to the item",
+            )
     return key
 
 
-async def validate_databrowser_stats(data: Dict[str, Union[str, int]]) -> None:
+async def validate_databrowser_stats(
+    data: Dict[str, Union[Dict[str, Union[str, int]], str, int]],
+    method: Literal["post", "put", "del"] = "post",
+) -> None:
     """Check if the databrowser metadata schema is valid.
 
     Parameters
     ----------
     data: dict
         The dict containing the databrowser search stats.
+    method: str
+        Which update/insert method is applied.
 
     Raises
     ------
     HTTPException: If the metadata scheme is unvalid 422 error is risen.
     """
-    metadata_schema = {
+    facet_keys = tuple(Translator("freva").valid_facets)
+    query_schema: SchemaType = {
+        "type": "object",
+        "properties": {key: {"type": "string"} for key in facet_keys},
+        "additionalProperties": False,
+    }
+    metadata_schema: SchemaType = {
         "type": "object",
         "properties": {
             "num_results": {"type": "integer"},
@@ -193,8 +229,30 @@ async def validate_databrowser_stats(data: Dict[str, Union[str, int]]) -> None:
         "required": ["num_results", "flavour", "uniq_key", "server_status"],
         "additionalProperties": False,
     }
+    schema: SchemaType = {
+        "type": "object",
+        "properties": {"metadata": metadata_schema, "query": query_schema},
+        "additionalProperties": False,
+    }
+    if method == "post":
+        schema["required"] = ["metadata", "query"]
+    else:
+        if "metadata" not in data:
+            del schema["properties"]["metadata"]["required"]
+        schema["properties"].update(
+            {
+                **{
+                    f"metadata.{k}": v
+                    for k, v in metadata_schema["properties"].items()
+                },
+                **{
+                    f"query.{k}": v
+                    for k, v in query_schema["properties"].items()
+                },
+            }
+        )
     try:
-        validate(data.get("metadata", {}), metadata_schema)
+        validate(data, schema)
     except JsonSchemaValidationError as error:
         logger.error("Metadata validation failed: %s", error)
         raise HTTPException(

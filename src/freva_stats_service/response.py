@@ -40,11 +40,11 @@ async def databrowser_stats_csv_stream(
     async for document in mongo_client[f"{db_name}.search_queries"].find(
         mongo_query
     ):
-        result = document["metadata"].copy()
+        result = {**{"id": document["_id"]}, **document["metadata"].copy()}
         if isinstance(result.get("date"), datetime):
             result["date"] = result["date"].isoformat()
         if not header:
-            header = tuple(result.keys()) + tuple(facet_keys)
+            header = ("id",) + tuple(result.keys()) + tuple(facet_keys)
             yield ",".join(header) + "\n"
         for facet in facet_keys:
             result[facet] = document["query"].get(facet, "")
