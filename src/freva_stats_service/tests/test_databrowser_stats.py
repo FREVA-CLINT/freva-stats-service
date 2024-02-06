@@ -1,6 +1,5 @@
 """Unit tests for the statistics."""
 
-from datetime import datetime
 from typing import Any, Dict, List
 
 import pytest
@@ -88,7 +87,6 @@ async def test_put_search_method_success(
     mongo_databrowser_collection: int,
 ) -> None:
     """Test the put method."""
-    payload = {"metadata": {"foo": "bar"}, "query": {"foo": "bar"}}
     stats = databrowser_search_stats[0].copy()
     payload = {"metadata": stats["metadata"], "query": stats["query"]}
     payload["metadata"]["num_results"] = 999

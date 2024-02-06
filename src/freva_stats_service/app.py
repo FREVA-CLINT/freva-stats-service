@@ -33,7 +33,7 @@ import os
 from fastapi import FastAPI
 
 from ._version import __version__
-from .utils import logger
+from .utils import logger  # noqa: F401
 
 metadata_tags = [
     {

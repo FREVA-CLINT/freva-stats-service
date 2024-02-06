@@ -5,23 +5,13 @@ from copy import copy
 from datetime import datetime
 from typing import Any, Dict, Iterator, List
 
-import mock
 import pytest
 from fastapi.testclient import TestClient
 from pymongo.mongo_client import MongoClient
 
-from freva_stats_service.run import app
+from freva_stats_service.run import app  # type: ignore
 from freva_stats_service.tests import read_gunzipped_stats
 from freva_stats_service.utils import mongo_client
-
-
-@pytest.fixture(scope="function")
-def cli_env() -> Dict[str, str]:
-    """Patch the environment."""
-    env = os.environ.copy()
-    env.pop("DEBUG", "0")
-    with mock.patch.dict(os.environ, env) as mock_env:
-        yield mock_env
 
 
 @pytest.fixture(scope="function")
@@ -30,7 +20,7 @@ def mongo_databrowser_collection() -> Iterator[int]:
     databrowser_search_stats = read_gunzipped_stats(
         "databrowser-stats.json.gz"
     )
-    with MongoClient(mongo_client.mongo_url) as m_client:
+    with MongoClient(mongo_client.mongo_url) as m_client:  # type: ignore
         collection = m_client["tests"]["search_queries"]
         try:
             collection.delete_many({})

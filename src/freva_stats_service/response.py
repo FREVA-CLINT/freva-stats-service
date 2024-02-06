@@ -1,7 +1,7 @@
 """Collection of response models."""
 
 from datetime import datetime
-from typing import Any, AsyncIterator, Dict, Tuple, Union
+from typing import Any, AsyncIterator, Dict, Tuple
 
 from databrowser.core import Translator
 from pydantic import BaseModel

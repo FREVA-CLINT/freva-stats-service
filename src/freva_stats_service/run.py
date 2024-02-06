@@ -1,4 +1,5 @@
 """Main script that runs the rest API."""
+
 from urllib.parse import parse_qsl
 
 from fastapi import Depends, HTTPException, Request, status
@@ -8,12 +9,10 @@ from pydantic import Required
 
 from .app import app
 from .docs import start_up
-from .response import TokenResponse
-from .stats import *
+from .stats import *  # noqa: F403, F401
 from .utils import (
     create_oauth_token,
     get_oauth_credentials,
-    logger,
     mongo_client,
 )
 

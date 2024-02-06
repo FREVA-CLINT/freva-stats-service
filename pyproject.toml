@@ -82,3 +82,6 @@ testspaths = [
     "tests",
 ]
 addopts = "-vv --cov=./src --cov-report=html:coverage_report --junitxml coverage.xml --cov-report xml"
+
+[tool.flake8]
+ignore = "F405"

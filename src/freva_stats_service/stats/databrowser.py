@@ -3,9 +3,9 @@
 import datetime
 from typing import Annotated, Any, Dict, Literal, Optional, Union
 
-from fastapi import Body, Header, HTTPException, Path, Query, Request, status
+from fastapi import Header, HTTPException, Path, Query, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Required
+from pydantic import BaseModel
 
 from ..app import app
 from ..response import databrowser_stats_csv_stream
@@ -75,7 +75,9 @@ async def replace_databrowser_stats(
             example="docs",
         ),
     ],
-    stat_id: Annotated[str, Path(description="The DB index that shall be replaced.")],
+    stat_id: Annotated[
+        str, Path(description="The DB index that shall be replaced.")
+    ],
     payload: DataBrowserStatsModel,
     access_token: Annotated[
         str,
@@ -94,7 +96,9 @@ async def replace_databrowser_stats(
     logger.debug("Validating data for %s:", payload)
     await validate_databrowser_stats(data)
     logger.debug("Updating payload for ID %s: %s to DB.", stat_id, payload)
-    await insert_mongo_db_data(project_name, "search_queries", key=stat_id, **data)
+    await insert_mongo_db_data(
+        project_name, "search_queries", key=stat_id, **data
+    )
     return {"status": "Data updated successfully"}
 
 
@@ -130,7 +134,8 @@ async def query_databrowser(
         Optional[str],
         Query(
             description=(
-                "Subset the unique key parameter (file, uri) the users" "were using."
+                "Subset the unique key parameter (file, uri) the users"
+                "were using."
             ),
         ),
     ] = None,
@@ -138,7 +143,8 @@ async def query_databrowser(
         Optional[int],
         Query(
             description=(
-                "Look only for searches that had a certain server " "response status."
+                "Look only for searches that had a certain server "
+                "response status."
             ),
             ge=0,
         ),
@@ -240,7 +246,9 @@ async def query_databrowser(
         if v is not None
     }
     if num_results is not None:
-        mongo_query["metadata.num_results"] = {f"${results_operator}": num_results}
+        mongo_query["metadata.num_results"] = {
+            f"${results_operator}": num_results
+        }
     if server_status is not None:
         mongo_query["metadata.num_results"] = server_status
     date_query = await get_date_query(before, after)
@@ -249,9 +257,9 @@ async def query_databrowser(
     for key, value in query_filters.items():
         if value is not None:
             mongo_query[f"query.{key}"] = {"$regex": value, "$options": "ix"}
-    count = await mongo_client[f"{project_name}.search_queries"].count_documents(
-        mongo_query
-    )
+    count = await mongo_client[
+        f"{project_name}.search_queries"
+    ].count_documents(mongo_query)
     if count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

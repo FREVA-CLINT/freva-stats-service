@@ -4,17 +4,16 @@ import hashlib
 import os
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
-from typing import Any, Dict, Optional, Tuple, TypedDict, Union, cast
+from typing import Any, Dict, Optional, Tuple, TypedDict, Union
 
 from bson.objectid import ObjectId
 from dateutil.parser import ParserError
 from dateutil.parser import parse as parse_time
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import HTTPException, status
 from jose import JWTError, jwt
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as JsonSchemaValidationError
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from .logger import Logger
 

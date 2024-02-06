@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Dict, Optional, Union
+from typing import Callable, Dict, Optional, Union
 
 import typer
 import uvicorn
@@ -36,7 +36,8 @@ def start(
     mongo_host: str = typer.Option(
         "localhost:27017",
         help=(
-            "Set the mongoDB host sever as fallback for the MONGO_HOST " "env variable."
+            "Set the mongoDB host sever as fallback for the MONGO_HOST "
+            "env variable."
         ),
     ),
     ask_mongo_password: bool = typer.Option(
@@ -68,11 +69,11 @@ def start(
         "MONGO_USERNAME": mongo_username,
         "API_USERNAME": api_username,
     }
-    api_password = {
+    api_password: Callable[[str], str] = {
         False: lambda x: os.environ.get("API_PASSWORD", "secret"),
         True: lambda x: Prompt.ask(x, password=True),
     }[ask_api_password]
-    mongo_password = {
+    mongo_password: Callable[[str], str] = {
         False: lambda x: os.environ.get("MONGO_PASSWORD", "secret"),
         True: lambda x: Prompt.ask(x, password=True),
     }[ask_mongo_password]
@@ -84,7 +85,9 @@ def start(
         workers = None
     with NamedTemporaryFile(suffix=".conf", prefix="env") as temp_f:
         Path(temp_f.name).write_text(
-            "\n".join([f"{k}={os.environ.get(k, v)}" for (k, v) in defaults.items()]),
+            "\n".join(
+                [f"{k}={os.environ.get(k, v)}" for (k, v) in defaults.items()]
+            ),
             encoding="utf-8",
         )
         uvicorn.run(

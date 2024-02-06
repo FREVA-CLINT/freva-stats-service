@@ -17,9 +17,11 @@ async def add_databrowser_stats(db_name: str = "docs") -> int:
         queries = json.loads(gzip_file.read())
     await collection.delete_many({})
     for query in queries:
-        query["metadata"]["date"] = datetime.fromisoformat(query["metadata"]["date"])
+        query["metadata"]["date"] = datetime.fromisoformat(
+            query["metadata"]["date"]
+        )
         await collection.insert_one(query)
-    return await cast(int, collection.count_documents({}))
+    return cast(int, await collection.count_documents({}))
 
 
 async def start_up(db_name: str = "docs") -> None:

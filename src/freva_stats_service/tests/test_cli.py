@@ -3,7 +3,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import Dict
 
 import mock
 from pytest_mock import MockerFixture
@@ -34,7 +33,7 @@ class MockTempfile:
         return str(Path(self.temp_dir) / "foo.txt")
 
 
-def test_cli(mocker: MockerFixture, cli_env: Dict[str, str]) -> None:
+def test_cli(mocker: MockerFixture) -> None:
     """Test the command line interface."""
     mock_run = mocker.patch("uvicorn.run")
 
