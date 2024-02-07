@@ -147,3 +147,18 @@ environment use:
 ```console
 pytest
 ```
+
+## Contributing
+
+If you would like to contribute to the project, please follow these guidelines.
+
+1.    Fork the repository.
+2.    Create a new branch: git checkout -b your-feature.
+3.    Make your changes and commit them: git commit -am 'Add some feature'.
+4.    Push to the branch: git push origin your-feature.
+5.    Submit a pull request.
+
+## License
+
+This project is licensed under the BSD 2-Clause License -
+see the LICENSE file for details.
