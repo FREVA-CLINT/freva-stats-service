@@ -91,7 +91,7 @@ def start(
             encoding="utf-8",
         )
         uvicorn.run(
-            "freva_stats_service.run:app",
+            "freva_storage_service.run:app",
             host="0.0.0.0",
             port=port,
             reload=dev,
