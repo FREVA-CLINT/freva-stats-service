@@ -93,8 +93,7 @@ docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
  ```console
 stats-service --debug --dev
 ```
-
-    You can inspect the available options using the ``--help`` flag.
+You can inspect the available options using the ``--help`` flag.
 
 ### Running Tests
 
