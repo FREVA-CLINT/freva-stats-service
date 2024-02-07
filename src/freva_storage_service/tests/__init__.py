@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, cast
 
-from freva_stats_service import docs
+from freva_storage_service import docs
 
 
 def read_gunzipped_stats(file_name: str) -> List[Dict[str, Any]]:
