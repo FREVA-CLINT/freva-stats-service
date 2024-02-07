@@ -8,7 +8,7 @@ import mock
 from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
-from freva_stats_service.cli import main
+from freva_storage_service.cli import main
 
 
 class MockTempfile:
@@ -39,14 +39,12 @@ def test_cli(mocker: MockerFixture) -> None:
 
     with TemporaryDirectory() as temp_dir:
         MockTempfile.temp_dir = temp_dir
-        with mock.patch(
-            "freva_stats_service.cli.NamedTemporaryFile", MockTempfile
-        ):
+        with mock.patch("freva_storage_service.cli.NamedTemporaryFile", MockTempfile):
             runner = CliRunner()
             result1 = runner.invoke(main, ["--dev"])
             assert result1.exit_code == 0
             mock_run.assert_called_once_with(
-                "freva_stats_service.run:app",
+                "freva_storage_service.run:app",
                 host="0.0.0.0",
                 port=8080,
                 reload=True,
@@ -57,7 +55,7 @@ def test_cli(mocker: MockerFixture) -> None:
             result2 = runner.invoke(main, ["--debug"])
             assert result2.exit_code == 0
             mock_run.assert_called_with(
-                "freva_stats_service.run:app",
+                "freva_storage_service.run:app",
                 host="0.0.0.0",
                 port=8080,
                 reload=False,

@@ -9,17 +9,15 @@ import pytest
 from fastapi.testclient import TestClient
 from pymongo.mongo_client import MongoClient
 
-from freva_stats_service.run import app  # type: ignore
-from freva_stats_service.tests import read_gunzipped_stats
-from freva_stats_service.utils import mongo_client
+from freva_storage_service.run import app  # type: ignore
+from freva_storage_service.tests import read_gunzipped_stats
+from freva_storage_service.utils import mongo_client
 
 
 @pytest.fixture(scope="function")
 def mongo_databrowser_collection() -> Iterator[int]:
     """Set up mongo connection."""
-    databrowser_search_stats = read_gunzipped_stats(
-        "databrowser-stats.json.gz"
-    )
+    databrowser_search_stats = read_gunzipped_stats("databrowser-stats.json.gz")
     with MongoClient(mongo_client.mongo_url) as m_client:  # type: ignore
         collection = m_client["tests"]["search_queries"]
         try:
@@ -45,9 +43,7 @@ def client() -> Iterator[TestClient]:
             yield test_client
     finally:
         for collection in ("search_queries",):
-            MongoClient(mongo_client.mongo_url)["tests"][
-                collection
-            ].delete_many({})
+            MongoClient(mongo_client.mongo_url)["tests"][collection].delete_many({})
 
 
 @pytest.fixture(scope="session")

@@ -3,7 +3,7 @@ requires = ["flit_core >=3.2"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "freva-stats-service"
+name = "freva-storage-service"
 authors = [{name = "DKRZ, Clint", email = "freva@dkrz.de"}]
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -49,6 +49,7 @@ test = [
     "isort",
     "flake8",
     "httpx",
+    "pandas",
     "pre-commit",
     "pytest-asyncio",
     "pytest-env",
@@ -59,14 +60,15 @@ test = [
 
 [project.urls]
 # Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
-Issues = "https://github.com/FREVA-CLINT/freva-stats-service/issues"
-Source = "https://github.com/FREVA-CLINT/freva-stats-service"
+Issues = "https://github.com/FREVA-CLINT/freva-storage-service/issues"
+Source = "https://github.com/FREVA-CLINT/freva-storage-service"
 
 [project.scripts]
-stats-service = "freva_stats_service.cli:main"
+storage-service = "freva_storage_service.cli:main"
 
 [package-data]
-freva_stats_service = "*.json.gz"
+freva_storage_service = ["*.json.gz", "py.typed"]
+
 
 
 [tool.pytest.ini_options]
@@ -86,3 +88,19 @@ addopts = "-vv --cov=./src --cov-report=html:coverage_report --junitxml coverage
 
 [tool.flake8]
 ignore = "F405"
+
+[tool.mypy]
+files = "src/freva_storage_service"
+strict = true
+warn_unused_ignores = true
+warn_unreachable = true
+show_error_codes = true
+install_types = true
+non_interactive = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+ignore_missing_imports = true
