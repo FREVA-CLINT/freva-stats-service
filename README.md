@@ -71,28 +71,28 @@ To locally install the API for development purposes follow these steps:
 
 1. Clone the repository:
 
-    ```console
+```console
 git clone git@github.com:FREVA-CLINT/freva-stats-service.git
 cd freva-stats-service
-    ```
+```
 
 2. Install the project in editable mode with test dependencies:
 
-    ```console
+```console
 pip install -e .[test]
-    ```
+```
 
 3. Start the development environment using Docker:
 
-    ```console
+```console
 docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
-    ```
+```
 
 4. Run the CLI command:
 
-    ```console
+ ```console
 stats-service --debug --dev
-     ```
+```
      You can inspect the available options using the ``--help`` flag.
 
 ### Running Tests
