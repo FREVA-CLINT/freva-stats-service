@@ -1,12 +1,11 @@
 """Collection of statistics methods."""
 
 import datetime
-from typing import Annotated, Any, Dict, Literal, Optional, Union
+from typing import Annotated, Any, Dict, Literal, Optional
 
 import bson
-from fastapi import Header, HTTPException, Path, Query, status
+from fastapi import Body, Header, HTTPException, Path, Query, status
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from pydantic import BaseModel
 
 from ..app import app
 from ..response import databrowser_stats_csv_stream
@@ -18,19 +17,13 @@ from ..utils import (
     validate_databrowser_stats,
     validate_token,
 )
+from .schema import DataBrowserStatsModel
 
 __all__ = [
     "add_databrowser_stats",
     "query_databrowser",
     "replace_databrowser_stats",
 ]
-
-
-class DataBrowserStatsModel(BaseModel):
-    """Stats model for saving databrowser search statistics."""
-
-    metadata: Dict[str, Union[int, str, datetime.datetime]]
-    query: Dict[str, str]
 
 
 @app.post(
@@ -82,7 +75,14 @@ async def replace_databrowser_stats(
             example="1fc3fa0b5a854d21856d4bff",
         ),
     ],
-    payload: Dict[str, Any],
+    payload: Annotated[
+        Dict[str, Any],
+        Body(
+            ...,
+            description="Content that should be changed.",
+            example={"metadata.num_results": 20, "query.project": "cmip"},
+        ),
+    ],
     access_token: Annotated[
         str,
         Header(
@@ -92,14 +92,16 @@ async def replace_databrowser_stats(
     ] = "",
 ) -> JSONResponse:
     """Replace existing statistics in the database."""
+    data = {k: v for (k, v) in payload.items() if v is not None}
     if project_name == "example-project" and access_token == "my-token":
+        logger.debug("Validating data for %s:", data)
+        await validate_databrowser_stats(data, method="put")
         return JSONResponse(
             {"status": "Data updated successfully"},
             status_code=status.HTTP_200_OK,
         )
     logger.debug("Validating token: %s", access_token)
     await validate_token(access_token)
-    data = {k: v for (k, v) in payload.items() if v is not None}
     logger.debug("Validating data for %s:", data)
     await validate_databrowser_stats(data, method="put")
     logger.debug("Updating payload for ID %s: %s to DB.", stat_id, data)

@@ -14,12 +14,6 @@ async def test_post_search_method_wrong_types(
     """Test the schema validation."""
     payload = {"metadata": {"foo": "bar"}, "query": {"foo": "bar"}}
     res = client.post(
-        "/api/storage/stats/example-project/databrowser/",
-        json=payload,
-        headers={"access-token": "foo"},
-    )
-    assert res.status_code == 201
-    res = client.post(
         "/api/storage/stats/tests/databrowser/",
         json=payload,
     )
@@ -33,9 +27,15 @@ async def test_post_search_method_authorised(
     mongo_databrowser_collection: int,
 ) -> None:
     """Test adding new query stats."""
+    stats = databrowser_search_stats[0]
+    json = {"metadata": stats["metadata"], "query": stats["query"]}
+    res = client.post(
+        "/api/storage/stats/example-project/databrowser/",
+        json=json,
+    )
+    assert res.status_code == 201
     for query in databrowser_search_stats[:mongo_databrowser_collection]:
         json = {"metadata": query["metadata"], "query": query["query"]}
-        print(json)
         res = client.post(
             "/api/storage/stats/tests/databrowser/",
             json=json,
@@ -55,6 +55,12 @@ async def test_put_search_method_fail(
     res = client.put(
         "/api/storage/stats/example-project/databrowser/0/",
         json=payload,
+        headers={"access-token": "my-token"},
+    )
+    assert res.status_code == 422
+    res = client.put(
+        "/api/storage/stats/example-project/databrowser/0/",
+        json={"query.project": "cmip5"},
         headers={"access-token": "my-token"},
     )
     assert res.status_code == 200
