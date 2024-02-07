@@ -30,7 +30,7 @@ def start_storage_service(
             with pid_file.open("w") as f:
                 f.write(str(process.pid))
     except Exception as e:
-        logger.error("Error starting storage-service: %s", e)
+        logger.warning("Could not start storage-service: %s", e)
 
 
 def kill_storage_service(
@@ -52,7 +52,7 @@ def kill_storage_service(
         # Remove the file
         pid_file.unlink()
     except Exception as e:
-        logger.error("Error killing storage-service: %s", e)
+        logger.warning("Failed to terminate storage-service: %s", e)
 
 
 def main() -> None:

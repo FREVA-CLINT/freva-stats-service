@@ -115,7 +115,7 @@ cd freva-stats-service
 2. Install the project in editable mode with test dependencies:
 
 ```console
-pip install -e .[test]
+pip install -e .[dev]
 ```
 
 3. Start the development environment using Docker:
@@ -127,20 +127,23 @@ docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
 4. Run the CLI command:
 
  ```console
-stats-service --debug --dev
+stats-service --debug --reload
 ```
 You can inspect the available options using the ``--help`` flag.
 
 ### Running Tests
 
-Run the unit tests using:
+Unit tests, Example notebook tests, type annotations and code style tests
+are done with [tox](https://tox.wiki/en/latest/). To run all tests, linting
+simply execute the following command:
 
 ```console
-make test
+tox
 ```
 
-Liting is done via
+Tox runs in a separate python environment to run the tests in the current
+environment use:
 
 ```console
-make lint
+pytest
 ```

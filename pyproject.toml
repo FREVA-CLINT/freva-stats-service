@@ -22,6 +22,7 @@ requires-python = ">=3.11"
 dependencies = [ "fastapi",
              "jsonschema",
              "python-multipart",
+             "setuptools",
              "databrowser@git+https://github.com/FREVA-CLINT/databrowserAPI.git",
              "python-jose[cryptography]",
              "passlib[bcrypt]",
@@ -32,34 +33,7 @@ dependencies = [ "fastapi",
              "requests",
 ]
 [project.optional-dependencies]
-docs = [
-    "pydata-sphinx-theme",
-    "sphinx",
-    "sphinx-copybutton",
-    "nbsphinx",
-    "recommonmark",
-    "sphinx_rtd_theme",
-    "ipython",
-    "sphinxcontrib_github_alt",
-]
-test = [
-    "mypy",
-    "mock",
-    "black",
-    "isort",
-    "flake8",
-    "httpx",
-    "nbval",
-    "pandas",
-    "matplotlib",
-    "pre-commit",
-    "pytest-asyncio",
-    "pytest-env",
-    "pytest-mypy",
-    "pytest-mock",
-    "pytest-cov",
-]
-
+dev = ["tox-battery"]
 [project.urls]
 # Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
 Issues = "https://github.com/FREVA-CLINT/freva-storage-service/issues"
@@ -87,7 +61,7 @@ testspaths = [
     "tests",
     "./examples",
 ]
-addopts = "-vv --nbval --cov=./src --cov-report=html:coverage_report --junitxml coverage.xml --cov-report xml"
+addopts = "-vv --cov=./src --cov-report=html:coverage_report --junitxml coverage.xml --cov-report xml"
 
 [tool.flake8]
 ignore = "F405"
@@ -112,7 +86,8 @@ ignore_missing_imports = true
 legacy_tox_ini = """
 [tox]
 min_version = 4.0
-[testenv]
+env_list = types, lint, test
+[testenv:test]
 setenv =
     MONGO_HOST = localhost:27017
     MONGO_DB = tests
@@ -121,9 +96,35 @@ setenv =
     API_USERNAME = freva
     API_PASSWORD = secreto
     DEBUG = 0
-deps = .[test]
+deps = -e .
+       mock
+       httpx
+       nbval
+       pandas
+       matplotlib
+       pytest-asyncio
+       pytest-env
+       pytest-mock
+       pytest-cov
+
 commands_pre = python3 dev-env/start-stop-service.py --start
 commands_post = python3 dev-env/start-stop-service.py --kill
-commands = pytest
-allowlist_externals = nohup
+commands =
+    pytest --nbval
+    python3 -m coverage report --fail-under=98.5 --precision=2
+[testenv:lint]
+deps = .
+       mypy
+       black
+       isort
+       flake8
+       pytest-stub
+commands =
+    isort --check --profile black -t py311 -l 79 src
+    flake8 src/freva_storage_service --count --max-complexity=8 --ignore=F405,W503 --max-line-length=88 --statistics --show-source
+[testenv:types]
+deps = .
+       mypy
+       pytest-stub
+commands = mypy --install-types --non-interactive
 """

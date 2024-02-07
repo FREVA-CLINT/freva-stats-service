@@ -26,19 +26,9 @@ jobs:
         run: |
           docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
       - name: Install dependencies
-        run: |
-          python3 -m pip install -e .[test]
-      - name: Check code style
-        run: isort --check --profile black -t py311 -l 79 src
-      - name: Check type annotations
-        run: mypy --install-types --non-interactive
-      - name: Test code style
-        run: |
-          flake8 src/freva_storage_service --count --max-complexity=8 --ignore=F405,W503 --max-line-length=88 --statistics --show-source
-      - name: Run Tests
-        run: |
-          python3 -m pytest
-          python3 -m coverage report
+        run: python3 -m pip install tox
+      - name: Run all tests with tox
+        run: tox
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
