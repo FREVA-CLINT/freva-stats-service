@@ -14,13 +14,13 @@ async def test_post_search_method_wrong_types(
     """Test the schema validation."""
     payload = {"metadata": {"foo": "bar"}, "query": {"foo": "bar"}}
     res = client.post(
-        "/api/stats/docs/databrowser/",
+        "/api/storage/stats/example-project/databrowser/",
         json=payload,
         headers={"access-token": "foo"},
     )
     assert res.status_code == 201
     res = client.post(
-        "/api/stats/tests/databrowser/",
+        "/api/storage/stats/tests/databrowser/",
         json=payload,
     )
     assert res.status_code == 422
@@ -37,7 +37,7 @@ async def test_post_search_method_authorised(
         json = {"metadata": query["metadata"], "query": query["query"]}
         print(json)
         res = client.post(
-            "/api/stats/tests/databrowser/",
+            "/api/storage/stats/tests/databrowser/",
             json=json,
         )
         assert res.status_code == 201
@@ -53,19 +53,19 @@ async def test_put_search_method_fail(
     payload = {"metadata": {"foo": "bar"}, "query": {"foo": "bar"}}
     stats = databrowser_search_stats[0].copy()
     res = client.put(
-        "/api/stats/docs/databrowser/0/",
+        "/api/storage/stats/example-project/databrowser/0/",
         json=payload,
-        headers={"access-token": "faketoken"},
+        headers={"access-token": "my-token"},
     )
     assert res.status_code == 200
     res = client.put(
-        "/api/stats/tests/databrowser/0",
+        "/api/storage/stats/tests/databrowser/0",
         json=payload,
-        headers={"access-token": "faketoken"},
+        headers={"access-token": "my-token"},
     )
     assert res.status_code == 401
     res = client.put(
-        "/api/stats/tests/databrowser/0",
+        "/api/storage/stats/tests/databrowser/0",
         json={"metadata.num_results": 2},
         headers={"access-token": access_token},
     )
@@ -79,14 +79,14 @@ async def test_put_search_method_fail(
         {"metadata.foo": "bar"},
     ):
         res = client.put(
-            "/api/stats/docs/databrowser/0",
+            "/api/storage/stats/example-project/databrowser/0",
             json=keys,
             headers={"access-token": access_token},
         )
         assert res.status_code == 422
 
     res = client.put(
-        f"/api/stats/docs/databrowser/{uuid4().hex[:24]}",
+        f"/api/storage/stats/example-project/databrowser/{uuid4().hex[:24]}",
         json={"metadata": stats["metadata"], "query": stats["query"]},
         headers={"access-token": access_token},
     )
@@ -105,26 +105,26 @@ async def test_put_search_method_success(
     payload = {"metadata": stats["metadata"], "query": stats["query"]}
     payload["metadata"]["num_results"] = 999
     res = client.put(
-        f"/api/stats/docs/databrowser/{stats['_id']}/",
+        f"/api/storage/stats/example-project/databrowser/{stats['_id']}/",
         json=payload,
-        headers={"access-token": "faketoken"},
+        headers={"access-token": "my-token"},
     )
     assert res.status_code == 200
     res = client.post(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         json={"metadata": stats["metadata"], "query": stats["query"]},
         headers={"access-token": access_token},
     )
     key = res.json()["id"]
 
     res = client.put(
-        f"/api/stats/tests/databrowser/{key}",
+        f"/api/storage/stats/tests/databrowser/{key}",
         json={"metadata": stats["metadata"], "query": stats["query"]},
         headers={"access-token": access_token},
     )
     assert res.status_code == 200
     res = client.put(
-        f"/api/stats/tests/databrowser/{key}",
+        f"/api/storage/stats/tests/databrowser/{key}",
         json={"metadata.num_results": 20, "query.project": "cmip5"},
         headers={"access-token": access_token},
     )
@@ -139,30 +139,31 @@ async def test_delete_method(
 ) -> None:
     """Test the delete method."""
     res = client.delete(
-        "/api/stats/docs/databrowser/0", headers={"access-token": "faketoken"}
+        "/api/storage/stats/example-project/databrowser/0",
+        headers={"access-token": "my-token"},
     )
     assert res.status_code == 204
-    res = client.delete("/api/stats/tests/databrowser/0")
+    res = client.delete("/api/storage/stats/tests/databrowser/0")
     assert res.status_code == 401
     res = client.delete(
-        "/api/stats/tests/databrowser/0",
+        "/api/storage/stats/tests/databrowser/0",
         headers={"access-token": access_token},
     )
     assert res.status_code == 500
     res = client.delete(
-        f"/api/stats/tests/databrowser/{uuid4().hex[:24]}",
+        f"/api/storage/stats/tests/databrowser/{uuid4().hex[:24]}",
         headers={"access-token": access_token},
     )
     assert res.status_code == 404
     stats = databrowser_search_stats[0].copy()
     res = client.post(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         json={"metadata": stats["metadata"], "query": stats["query"]},
         headers={"access-token": access_token},
     )
     key = res.json()["id"]
     res = client.delete(
-        f"/api/stats/tests/databrowser/{key}",
+        f"/api/storage/stats/tests/databrowser/{key}",
         headers={"access-token": access_token},
     )
     assert res.status_code == 204
@@ -171,7 +172,7 @@ async def test_delete_method(
 @pytest.mark.asyncio
 async def test_get_search_method_unauthorised(client: TestClient) -> None:
     """Test the get statistics method."""
-    res = client.get("/api/stats/tests/databrowser")
+    res = client.get("/api/storage/stats/tests/databrowser")
     assert res.status_code == 401
 
 
@@ -184,41 +185,41 @@ async def test_get_search_method_authorised(
 ) -> None:
     """Test the get statistics method."""
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
     )
     assert res.status_code == 401
     res = client.get(
-        "/api/stats/docs/databrowser",
-        headers={"access-token": "faketoken"},
+        "/api/storage/stats/example-project/databrowser",
+        headers={"access-token": "my-token"},
     )
     assert res.status_code != 401
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         headers={"access-token": access_token},
     )
     assert res.status_code == 200
     assert len(list(res.iter_lines())) == mongo_databrowser_collection + 1
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         headers={"access-token": access_token},
         params={"num_results": 0, "before": "2020-02-02"},
     )
     assert res.status_code == 404
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         headers={"access-token": access_token},
         params={"server_status": 500},
     )
     assert res.status_code == 404
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         headers={"access-token": access_token},
         params={"num_results": 0, "after": "foo"},
     )
     assert res.status_code == 200
     assert len(list(res.iter_lines())) == mongo_databrowser_collection + 1
     res = client.get(
-        "/api/stats/tests/databrowser",
+        "/api/storage/stats/tests/databrowser",
         headers={"access-token": access_token},
         params={"project": "cmip"},
     )

@@ -8,15 +8,15 @@ It is designed with security, flexibility, and ease of use in mind.
 Currently the following functionality is implemented:
 
 - add, retrieve, delete databrowser user search queries.
-- add, retrieve, delete freva plugin statistics.
+- add, retrieve, delete freva plugin statistics (work in progress).
 
 
 Authentication
 --------------
 The API supports token-based authentication using OAuth2. To obtain an access
-token, clients can use the `/api/token` endpoint by providing valid username and
-password credentials. The access token should then be included in the
-Authorization header for secured endpoints.
+token, clients can use the `/api/storage/v2/token` endpoint by providing valid
+username and password credentials. The access token should then be included in
+the Authorization header for secured endpoints.
 
 Data Validation
 ---------------
@@ -51,8 +51,8 @@ app = FastAPI(
     debug=bool(int(os.environ["DEBUG"])),
     title="Freva storage restAPI",
     description=__doc__,
-    openapi_url="/api/docs/openapi.json",
-    docs_url="/api/docs",
+    openapi_url="/api/storage/docs/openapi.json",
+    docs_url="/api/storage/docs",
     redoc_url=None,
     openapi_tags=metadata_tags,
     version=__version__,

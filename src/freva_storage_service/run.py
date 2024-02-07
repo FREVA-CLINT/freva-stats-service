@@ -25,11 +25,11 @@ async def shutdown_event() -> None:
 @app.on_event("startup")
 async def startup_event() -> None:
     """Call a bunch of functions on startup."""
-    await start_up("docs")
+    await start_up("example-project")
 
 
 # Route to get an OAuth2 token
-@app.post("/api/token", tags=["Authentication"])
+@app.post("/api/storage/v2/token", tags=["Authentication"])
 async def login_for_access_token(
     credentials: OAuth2PasswordRequestForm = Depends(),
     request: Request = Required,
@@ -56,8 +56,8 @@ async def login_for_access_token(
     token, expires_at = await create_oauth_token(credentials.username, expiry)
     return JSONResponse(
         content={
-            "access_token": token,
-            "expires_at": expires_at,
+            "access-token": token,
+            "expires-at": expires_at,
             "token_type": "bearer",
         },
         status_code=status.HTTP_201_CREATED,

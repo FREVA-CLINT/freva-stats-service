@@ -34,7 +34,7 @@ class DataBrowserStatsModel(BaseModel):
 
 
 @app.post(
-    "/api/stats/{project_name}/databrowser",
+    "/api/storage/stats/{project_name}/databrowser",
     status_code=status.HTTP_201_CREATED,
     tags=["Freva Statistics"],
 )
@@ -43,13 +43,13 @@ async def add_databrowser_stats(
         str,
         Path(
             description="Name of the freva instance for gathering information.",
-            example="docs",
+            example="example-project",
         ),
     ],
     payload: DataBrowserStatsModel,
 ) -> Dict[str, str]:
     """Add new statistics to the databrowser stats."""
-    if project_name == "docs":
+    if project_name == "example-project":
         return {"status": "Data created successfully"}
     data = {k: v for (k, v) in payload.dict().items() if v is not None}
     logger.debug("Validating data for %s:", data)
@@ -64,7 +64,7 @@ async def add_databrowser_stats(
 
 
 @app.put(
-    "/api/stats/{project_name}/databrowser/{stat_id}",
+    "/api/storage/stats/{project_name}/databrowser/{stat_id}",
     tags=["Freva Statistics"],
 )
 async def replace_databrowser_stats(
@@ -72,7 +72,7 @@ async def replace_databrowser_stats(
         str,
         Path(
             description="Name of the freva instance for gathering information.",
-            example="docs",
+            example="example-project",
         ),
     ],
     stat_id: Annotated[
@@ -87,12 +87,12 @@ async def replace_databrowser_stats(
         str,
         Header(
             description="Token for authentication",
-            example="faketoken",
+            example="my-token",
         ),
     ] = "",
 ) -> JSONResponse:
     """Replace existing statistics in the database."""
-    if project_name == "docs" and access_token == "faketoken":
+    if project_name == "example-project" and access_token == "my-token":
         return JSONResponse(
             {"status": "Data updated successfully"},
             status_code=status.HTTP_200_OK,
@@ -111,13 +111,15 @@ async def replace_databrowser_stats(
     )
 
 
-@app.get("/api/stats/{project_name}/databrowser", tags=["Freva Statistics"])
+@app.get(
+    "/api/storage/stats/{project_name}/databrowser", tags=["Freva Statistics"]
+)
 async def query_databrowser(
     project_name: Annotated[
         str,
         Path(
             description="Name of the freva instance for gathering information.",
-            example="docs",
+            example="example-project",
         ),
     ],
     num_results: Annotated[
@@ -220,7 +222,7 @@ async def query_databrowser(
     ] = None,
     access_token: Annotated[
         str,
-        Header(description="Token for authentication", example="faketoken"),
+        Header(description="Token for authentication", example="my-token"),
     ] = "",
 ) -> StreamingResponse:
     """Filter for user databrowser queries.
@@ -230,8 +232,27 @@ async def query_databrowser(
     can only retrieve user searches for a given project or
     combinations of a model and a variable.
 
+    This GET method returns a csv data stream. This enables users to
+    read the data by data analysis tools like ``pandas`` to do more in
+    depth analytics. For example:
+
+
+        import io
+        import requests
+        import pandas as pd
+
+        res = requests.get(
+            "http://example.com/api/storage/stats/my-project/databrowser",
+            headers={"access-token": "my-token"},
+        )
+        csv_content = io.BytesIO()
+        for chunk in res.iter_content(chunk_size=8192):
+             csv_content.write(chunk)
+        csv_content.seek(0)
+        df = pd.read_csv(csv_content, index_col=0)
+
     """
-    if project_name != "docs" and access_token != "faketoken":
+    if project_name != "example-project" and access_token != "my-token":
         logger.debug("Validating token: %s", access_token)
         await validate_token(access_token)
     query_filters = {
@@ -286,7 +307,7 @@ async def query_databrowser(
 
 
 @app.delete(
-    "/api/stats/{project_name}/databrowser/{stat_id}",
+    "/api/storage/stats/{project_name}/databrowser/{stat_id}",
     tags=["Freva Statistics"],
 )
 async def delete_statistics_by_index(
@@ -294,7 +315,7 @@ async def delete_statistics_by_index(
         str,
         Path(
             description="Name of the freva instance for gathering information.",
-            example="docs",
+            example="example-project",
         ),
     ],
     stat_id: Annotated[
@@ -306,11 +327,11 @@ async def delete_statistics_by_index(
     ],
     access_token: Annotated[
         str,
-        Header(description="Token for authentication", example="faketoken"),
+        Header(description="Token for authentication", example="my-token"),
     ] = "",
 ) -> Response:
     """Delete existing statistics in the database by a given key."""
-    if project_name == "docs" and access_token == "faketoken":
+    if project_name == "example-project" and access_token == "my-token":
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     logger.debug("Validating token")
     await validate_token(access_token)

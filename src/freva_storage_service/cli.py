@@ -11,7 +11,7 @@ from rich.prompt import Prompt
 
 from .logger import Logger
 
-main = typer.Typer(help="Run the statistics service API.")
+main = typer.Typer(help="Run the freva storage service API.")
 
 
 @main.command()
@@ -19,7 +19,9 @@ def start(
     port: int = typer.Option(
         os.environ.get("API_PORT", 8080), help="The port the api is running on"
     ),
-    dev: bool = typer.Option(False, help="Add test data to the mongoDB."),
+    reload: bool = typer.Option(
+        False, help="Reload on code changes (development mode)."
+    ),
     debug: bool = typer.Option(
         bool(int(os.environ.get("DEBUG", 0))), help="Turn on debug mode."
     ),
@@ -63,7 +65,7 @@ def start(
         ),
     ),
 ) -> None:
-    """Start rest API service."""
+    """Command line interface for the freva storage API."""
     defaults: Dict[str, Union[str, int]] = {
         "DEBUG": int(debug),
         "MONGO_HOST": mongo_host,
@@ -81,8 +83,8 @@ def start(
     defaults["MONGO_PASSWORD"] = mongo_password("Mongodb user password")
     defaults["API_PASSWORD"] = api_password("Api user admin password")
     logger = Logger(debug=debug)
-    if dev:
-        logger.debug("Running in dev mode.")
+    if reload:
+        logger.debug("Running in development mode.")
         workers = None
     with NamedTemporaryFile(suffix=".conf", prefix="env") as temp_f:
         Path(temp_f.name).write_text(
@@ -95,7 +97,7 @@ def start(
             "freva_storage_service.run:app",
             host="0.0.0.0",
             port=port,
-            reload=dev,
+            reload=reload,
             log_level=logger.getEffectiveLevel(),
             workers=workers,
             env_file=temp_f.name,

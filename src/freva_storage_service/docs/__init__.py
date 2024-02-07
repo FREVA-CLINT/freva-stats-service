@@ -9,7 +9,7 @@ from typing import cast
 from ..utils import mongo_client
 
 
-async def add_databrowser_stats(db_name: str = "docs") -> int:
+async def add_databrowser_stats(db_name: str) -> int:
     """Add example data for the databrowser query statistics."""
     archive_path = Path(__file__).parent / "databrowser-stats.json.gz"
     collection = mongo_client[f"{db_name}.search_queries"]
@@ -17,14 +17,12 @@ async def add_databrowser_stats(db_name: str = "docs") -> int:
         queries = json.loads(gzip_file.read())
     await collection.delete_many({})
     for query in queries:
-        query["metadata"]["date"] = datetime.fromisoformat(
-            query["metadata"]["date"]
-        )
+        query["metadata"]["date"] = datetime.fromisoformat(query["metadata"]["date"])
         await collection.insert_one(query)
     return cast(int, await collection.count_documents({}))
 
 
-async def start_up(db_name: str = "docs") -> None:
+async def start_up(db_name: str = "example-project") -> None:
     """Define startup behaviour."""
     try:
         await add_databrowser_stats(db_name)

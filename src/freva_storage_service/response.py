@@ -44,7 +44,7 @@ async def databrowser_stats_csv_stream(
         if isinstance(result.get("date"), datetime):
             result["date"] = result["date"].isoformat()
         if not header:
-            header = ("id",) + tuple(result.keys()) + tuple(facet_keys)
+            header = tuple(result.keys()) + tuple(facet_keys)
             yield ",".join(header) + "\n"
         for facet in facet_keys:
             result[facet] = document["query"].get(facet, "")

@@ -41,7 +41,7 @@ def test_cli(mocker: MockerFixture) -> None:
         MockTempfile.temp_dir = temp_dir
         with mock.patch("freva_storage_service.cli.NamedTemporaryFile", MockTempfile):
             runner = CliRunner()
-            result1 = runner.invoke(main, ["--dev"])
+            result1 = runner.invoke(main, ["--reload"])
             assert result1.exit_code == 0
             mock_run.assert_called_once_with(
                 "freva_storage_service.run:app",

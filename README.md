@@ -13,9 +13,9 @@ Currently the following functionality is implemented:
 
 ### Authentication
 The API supports token-based authentication using OAuth2. To obtain an access
-token, clients can use the `/api/token` endpoint by providing valid username and
-password credentials. The access token should then be included in the
-Authorization header for secured endpoints.
+token, clients can use the ``/api/storage/v2/token`` endpoint by providing
+valid username and password credentials. The access token should then be
+included in the Authorization header for secured endpoints.
 
 ### Data Validation
 Data payloads are validated using JSON Schema to ensure the correct
@@ -32,16 +32,52 @@ or invalid inputs.
 
 A detailed documentation is available via the auto generated docs.
 You can access the documentation after the API is running (deployed or in dev mode)
-via the ``/api/docs`` end point. For example:
-[http://0.0.0.0:8080/api/docs](http://0.0.0.0:8080/api/docs)
+via the ``/api/storage/docs`` end point. For example:
+[http://0.0.0.0:8080/api/storage/docs](http://0.0.0.0:8080/api/storage/docs)
 
 Please also refer to the example notebooks, to get an overview over some usage
 examples.
 
-## Docker production container
+## Production deployment
+The API is set up using a command line interface called ``storage-service``.
+There are several options to configure the API:
 
-The API is meant to be deployed in production within a dedicated docker
-container. You can pull the container from the GitHub container registry:
+```console
+storage-service --help
+
+ Usage: storage-service [OPTIONS]
+
+ Command line interface for the freva storage API.
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --port                                             INTEGER                          The port the api is running on [default: 8080]                                       │
+│ --reload                --no-reload                                                 Reload on code changes (development mode). [default: no-reload]                      │
+│ --debug                 --no-debug                                                  Turn on debug mode. [default: no-debug]                                              │
+│ --workers                                          INTEGER                          Set the number of parallel processes serving the API. [default: 8]                   │
+│ --mongo-username                                   TEXT                             Set the mongoDB username as fallback for the MONGO_USERNAME env variable.            │
+│                                                                                     [default: mongo]                                                                     │
+│ --mongo-host                                       TEXT                             Set the mongoDB host sever as fallback for the MONGO_HOST env variable.              │
+│                                                                                     [default: localhost:27017]                                                           │
+│ --ask-mongo-password    --no-ask-mongo-password                                     Set the mongoDB user password as fallback for the MONGO_PASSWORD env variable.       │
+│                                                                                     [default: no-ask-mongo-password]                                                     │
+│ --api-username                                     TEXT                             Set the API admin username as fallback for the API_USERNAME env variable.            │
+│                                                                                     [default: stats]                                                                     │
+│ --ask-api-password      --no-ask-api-password                                       Set the API admin user password as fallback for the API_PASSWORD env variable.       │
+│                                                                                     [default: no-ask-api-password]                                                       │
+│ --install-completion                               [bash|zsh|fish|powershell|pwsh]  Install completion for the specified shell. [default: None]                          │
+│ --show-completion                                  [bash|zsh|fish|powershell|pwsh]  Show completion for the specified shell, to copy it or customize the installation.   │
+│                                                                                     [default: None]                                                                      │
+│ --help                                                                              Show this message and exit.                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
+
+### Docker production container
+
+Instead of running the command line interface the API can be deployed
+in production within a dedicated docker container. You can pull the container
+from the GitHub container registry:
 
 ```console
 docker pull ghcr.io/freva-clint/freva-storage-service:latest
