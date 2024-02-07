@@ -33,7 +33,7 @@ dependencies = [ "fastapi",
              "requests",
 ]
 [project.optional-dependencies]
-dev = ["tox-battery"]
+dev = ["tox-battery", "flit"]
 [project.urls]
 # Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
 Issues = "https://github.com/FREVA-CLINT/freva-storage-service/issues"
