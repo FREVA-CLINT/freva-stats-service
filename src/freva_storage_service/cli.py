@@ -102,3 +102,7 @@ def start(
             workers=workers,
             env_file=temp_f.name,
         )
+
+
+if __name__ == "__main__":
+    main()
