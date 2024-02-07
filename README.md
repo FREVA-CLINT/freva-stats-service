@@ -36,7 +36,7 @@ via the ``/api/storage/docs`` end point. For example:
 [http://0.0.0.0:8080/api/storage/docs](http://0.0.0.0:8080/api/storage/docs)
 
 Please also refer to the example notebooks, to get an overview over some usage
-examples.
+examples in the [examples](examples) folder.
 
 ## Production deployment
 The API is set up using a command line interface called ``storage-service``.
