@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install tox
       - name: Run all tests with tox
-        run: tox
+        run: tox -p 3
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

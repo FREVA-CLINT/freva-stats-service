@@ -135,11 +135,17 @@ You can inspect the available options using the ``--help`` flag.
 
 Unit tests, Example notebook tests, type annotations and code style tests
 are done with [tox](https://tox.wiki/en/latest/). To run all tests, linting
-simply execute the following command:
+in parallel simply execute the following command:
 
 ```console
-tox
+tox -p 3
 ```
+You can also run the each part alone, for example to only check the code style:
+
+```console
+tox -e lint
+```
+available options are ``lint``, ``types``, ``test``.
 
 Tox runs in a separate python environment to run the tests in the current
 environment use:
