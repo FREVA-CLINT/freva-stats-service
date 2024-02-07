@@ -24,17 +24,18 @@ def start(
         bool(int(os.environ.get("DEBUG", 0))), help="Turn on debug mode."
     ),
     workers: Optional[int] = typer.Option(
-        8, help="Set the number of parallel processes serving the API."
+        int(os.environ.get("API_WORKER", "8")),
+        help="Set the number of parallel processes serving the API.",
     ),
     mongo_username: str = typer.Option(
-        "mongo",
+        os.environ.get("MONGO_USERNAME", "mongo"),
         help=(
             "Set the mongoDB username as fallback for the MONGO_USERNAME "
             "env variable."
         ),
     ),
     mongo_host: str = typer.Option(
-        "localhost:27017",
+        os.environ.get("MONGO_HOST", "localhost:27017"),
         help=(
             "Set the mongoDB host sever as fallback for the MONGO_HOST "
             "env variable."
@@ -48,7 +49,7 @@ def start(
         ),
     ),
     api_username: str = typer.Option(
-        "stats",
+        os.environ.get("API_USERNAME", "stats"),
         help=(
             "Set the API admin username as fallback for the API_USERNAME "
             "env variable."
