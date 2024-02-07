@@ -1,5 +1,10 @@
 # The freva storage restAPI 🚀
 
+[![License](https://img.shields.io/badge/License-BSD-purple.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11-purple.svg)](https://www.python.org/downloads/release/python-311/)
+[![Tests](https://github.com/FREVA-CLINT/freva-storage-service/actions/workflows/ci_job.yml/badge.svg)](https://github.com/FREVA-CLINT/ferva-storage-service/actions)
+[![codecov](https://codecov.io/gh/FREVA-CLINT/freva-storage-service/graph/badge.svg?token=E5fEVsjzmk)](https://codecov.io/gh/FREVA-CLINT/freva-storage-service)
+
 The freva storage restAPI is a powerful interface designed to interact with a
 database storage systems, providing functionalities to store, query, and
 manage statistical data related to user searches in the freva application.
