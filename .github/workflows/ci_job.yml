@@ -62,10 +62,11 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           platforms: linux/amd64
+          push: false
           tags: freva-storage-service
 
       - name: Check container functionality
-        run: python3dev-env/start-stop-service.py --docker
+        run: python3 dev-env/start-stop-service.py --docker
 
   dependabot:
     name: Merge PR by dependabot
