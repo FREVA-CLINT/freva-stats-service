@@ -58,11 +58,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build teh freva-storage-service image
-        run: docker buildx build -t freva-storage-service .
-
-      - name: Check container functionality
-        run: python3 dev-env/start-stop-service.py --docker
+      - name: Build and check the freva-storage-service image
+        run: |
+          docker buildx build -t freva-storage-service .
+          python3 dev-env/start-stop-service.py --docker
 
   dependabot:
     name: Merge PR by dependabot
