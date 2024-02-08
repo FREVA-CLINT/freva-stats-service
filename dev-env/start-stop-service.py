@@ -7,10 +7,51 @@ import subprocess
 import time
 from pathlib import Path
 from typing import Optional
+import urllib.request
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("start-stop")
+
+
+def check_container(container_name: str = "freva-storage-service") -> None:
+    """Check if the contianer starts up."""
+    try:
+        process = subprocess.Popen(
+            [
+                "docker",
+                "run",
+                "-it",
+                "--net=host",
+                "-e",
+                "MONGO_USERNAME=mongo",
+                "-e",
+                "MONGO_PASSWORD=secret",
+                "-e",
+                "MONGO_HOST=localhost:27017",
+                "-e",
+                "API_USERNAME=foo",
+                "-e",
+                "API_PASSWORD=bar",
+                container_name,
+            ],
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
+        )
+        time.sleep(2)
+        if process.poll() is not None:
+            raise RuntimeError("Container died.")
+        res = urllib.request.Request(
+            "http://localhost:8080/api/storage/stats/my-project/databrowser",
+            headers={"access-token": "my-token"},
+        )
+        with urllib.request.urlopen(res) as response:
+            if response.getcode() != 200:
+                raise RuntimeError("Container not properly set up.")
+    except Exception as error:
+        logger.critical("Strting the container failed: %s", error)
+        raise SystemExit
+    process.terminate()
 
 
 def start_storage_service(
@@ -57,14 +98,15 @@ def kill_storage_service(
 
 def main() -> None:
     """Parse command line arguments and execute corresponding actions."""
-    parser = argparse.ArgumentParser(
-        description="Manage storage-service process."
-    )
+    parser = argparse.ArgumentParser(description="Manage storage-service process.")
     parser.add_argument(
         "--start", action="store_true", help="Start storage-service process."
     )
     parser.add_argument(
         "--kill", action="store_true", help="Kill storage-service process."
+    )
+    parser.add_argument(
+        "--docker", action="store_true", help="Check the docker container."
     )
 
     args = parser.parse_args()
@@ -73,8 +115,11 @@ def main() -> None:
         start_storage_service()
     elif args.kill:
         kill_storage_service()
+    elif args.docker:
+        check_container()
     else:
         parser.print_help()
+        raise SystemExit
 
 
 if __name__ == "__main__":
