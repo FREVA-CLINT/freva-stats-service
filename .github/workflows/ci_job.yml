@@ -58,12 +58,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build and push freva-storage-service image
-        uses: docker/build-push-action@v4
-        with:
-          platforms: linux/amd64
-          push: false
-          tags: freva-storage-service
+      - name: Build teh freva-storage-service image
+        run: docker buildx build -t freva-storage-service .
 
       - name: Check container functionality
         run: python3 dev-env/start-stop-service.py --docker
