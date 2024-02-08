@@ -39,7 +39,7 @@ def check_container(container_name: str = "freva-storage-service") -> None:
         if process.poll() is not None:
             raise RuntimeError("Container died.")
         res = urllib.request.Request(
-            "http://localhost:8080/api/storage/stats/my-project/databrowser",
+            "http://localhost:8080/api/storage/stats/example-project/databrowser",
             headers={"access-token": "my-token"},
         )
         with urllib.request.urlopen(res) as response:
