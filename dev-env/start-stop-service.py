@@ -35,7 +35,7 @@ def check_container(container_name: str = "freva-storage-service") -> None:
                 container_name,
             ],
         )
-        time.sleep(2)
+        time.sleep(5)
         if process.poll() is not None:
             raise RuntimeError("Container died.")
         res = urllib.request.Request(
@@ -96,7 +96,9 @@ def kill_storage_service(
 
 def main() -> None:
     """Parse command line arguments and execute corresponding actions."""
-    parser = argparse.ArgumentParser(description="Manage storage-service process.")
+    parser = argparse.ArgumentParser(
+        description="Manage storage-service process."
+    )
     parser.add_argument(
         "--start", action="store_true", help="Start storage-service process."
     )
