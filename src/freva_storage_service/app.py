@@ -46,7 +46,6 @@ metadata_tags = [
     },
 ]
 
-print(bool(int(os.environ["DEBUG"])))
 app = FastAPI(
     debug=bool(int(os.environ["DEBUG"])),
     title="Freva storage restAPI",
