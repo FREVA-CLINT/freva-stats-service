@@ -21,7 +21,6 @@ def check_container(container_name: str = "freva-storage-service") -> None:
             [
                 "docker",
                 "run",
-                "-it",
                 "--net=host",
                 "-e",
                 "MONGO_USERNAME=mongo",
@@ -35,8 +34,6 @@ def check_container(container_name: str = "freva-storage-service") -> None:
                 "API_PASSWORD=bar",
                 container_name,
             ],
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
         )
         time.sleep(2)
         if process.poll() is not None:
@@ -50,8 +47,9 @@ def check_container(container_name: str = "freva-storage-service") -> None:
                 raise RuntimeError("Container not properly set up.")
     except Exception as error:
         logger.critical("Strting the container failed: %s", error)
-        raise SystemExit
+        raise
     process.terminate()
+    logger.info("Container seems to work!")
 
 
 def start_storage_service(
