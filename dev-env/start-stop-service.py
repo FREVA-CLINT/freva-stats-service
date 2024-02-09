@@ -10,7 +10,11 @@ from typing import Optional
 import urllib.request
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format="%(name)s - %(levelname)s - %(message)s",
+    datefmt="[%X]",
+    level=logging.INFO,
+)
 logger = logging.getLogger("start-stop")
 
 
@@ -96,9 +100,7 @@ def kill_storage_service(
 
 def main() -> None:
     """Parse command line arguments and execute corresponding actions."""
-    parser = argparse.ArgumentParser(
-        description="Manage storage-service process."
-    )
+    parser = argparse.ArgumentParser(description="Manage storage-service process.")
     parser.add_argument(
         "--start", action="store_true", help="Start storage-service process."
     )
