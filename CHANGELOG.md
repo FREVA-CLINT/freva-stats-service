@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2401.0.1] - 2024-02-10
+## [v2401.0.0] - 2024-02-10
 
 ### Added
 - Initial release of the project.

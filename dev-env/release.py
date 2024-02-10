@@ -12,7 +12,7 @@ from typing import Optional
 
 import git
 import tomli
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion
 
 # Set up logging
 logging.basicConfig(
@@ -37,6 +37,7 @@ class Release:
         logger.info(
             "Searching for packages/config with the name: %s", package_name
         )
+        logger.debug("Reading current git config")
         self.git_config = (
             Path(git.Repo(search_parent_directories=True).git_dir) / "config"
         ).read_text()
@@ -53,6 +54,7 @@ class Release:
     @cached_property
     def git_tag(self) -> Version:
         """Get the latest git tag."""
+        logger.debug("Searching for the latest tag")
         repo = git.Repo(self.repo_dir)
         try:
             # Get the latest tag on the main branch
@@ -60,11 +62,15 @@ class Release:
                 repo.git.describe("--tags", "--abbrev=0", "main").lstrip("v")
             )
         except git.exc.GitCommandError:
-            return Version("0.0.0")
+            logger.debug("No tag found")
+        except InvalidVersion:
+            logger.debug("Tag found, but could not parse version")
+        return Version("0.0.0")
 
     @property
     def version(self) -> Version:
         """Get the version of the current software."""
+        logger.debug("Searching for software version.")
         pck_dirs = Path("src") / self.package_name, Path(
             "src"
         ) / self.package_name.replace("-", "_")
@@ -94,11 +100,18 @@ class Release:
 
     def _clone_repo_from_franch(self, branch: str = "main") -> None:
 
+        logger.debug(
+            "Cloning repository from %s with branch %s to %s",
+            self.repo_url,
+            self.repo_dir,
+            branch,
+        )
         git.Repo.clone_from(self.repo_url, self.repo_dir, branch=branch)
         (self.repo_dir / ".git" / "config").write_text(self.git_config)
 
     def _check_change_lock_file(self) -> None:
         """Check if the current version was added to the change lock file."""
+        logger.debug("Checking for change log file.")
         if not self._change_lock_file.is_file():
             logger.critical(
                 "Could not find change log file. Create one first."
@@ -108,7 +121,7 @@ class Release:
             logger.critical(
                 "You need to add the version v%s to the %s change log file",
                 self.version,
-                self._check_change_lock_file,
+                self._change_lock_file.relative_to(self.repo_dir),
             )
             raise SystemExit
 
@@ -119,9 +132,9 @@ class Release:
             ("changelog", "whats-new"), (".rst", ".md")
         ):
             for search_pattern in (prefix, prefix.upper()):
-                for file in self.repo_dir.rglob(
-                    "**/{search_pattern}*{suffix}"
-                ):
+                glob_pattern = f"{search_pattern}{suffix}"
+                logger.debug("Searching for %s", glob_pattern)
+                for file in self.repo_dir.rglob(glob_pattern):
                     return file
         return Path(tempfile.mktemp())
 
@@ -129,7 +142,6 @@ class Release:
         """Tag a new git version."""
         self._clone_repo_from_franch(branch)
         cloned_repo = git.Repo(self.repo_dir)
-        print(self.version, self.git_tag)
         if self.version <= self.git_tag:
             logger.critical(
                 "Tag version: %s is the same as current version %s"
@@ -153,7 +165,9 @@ class Release:
             description="Prepare the release of a package."
         )
         parser.add_argument("name", help="The name of the software/package.")
-        parser.add_argument("-v", "--verbose", help="Enable debug mode.")
+        parser.add_argument(
+            "-v", "--verbose", help="Enable debug mode.", action="store_true"
+        )
         args = parser.parse_args()
         if args.verbose:
             logger.setLevel(logging.DEBUG)
