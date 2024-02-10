@@ -1,17 +1,18 @@
 """Script that prepares a new release of a version."""
 
-import git
-from cached_property import cached_property
-from packaging.version import Version
-import tempfile
 import argparse
 import json
-import re
-import tomli
-from itertools import product
 import logging
-from typing import Optional, Tuple
+import re
+import tempfile
+from functools import cached_property
+from itertools import product
 from pathlib import Path
+from typing import Optional
+
+import git
+import tomli
+from packaging.version import Version
 
 # Set up logging
 logging.basicConfig(
@@ -50,7 +51,7 @@ class Release:
         return repo.remotes.origin.url
 
     @cached_property
-    def git_tag(self) -> str:
+    def git_tag(self) -> Version:
         """Get the latest git tag."""
         repo = git.Repo(self.repo_dir)
         try:
@@ -62,7 +63,7 @@ class Release:
             return Version("0.0.0")
 
     @property
-    def version(self) -> str:
+    def version(self) -> Version:
         """Get the version of the current software."""
         pck_dirs = Path("src") / self.package_name, Path(
             "src"
@@ -85,7 +86,7 @@ class Release:
                     content = json.loads(file.read_text())
                     if "version" in content:
                         return Version(content["version"])
-                elif file.suffix(".toml"):
+                elif file.suffix == ".toml":
                     content = tomli.loads(file.read_text())
                     if "project" in content:
                         return Version(content["project"]["version"])
@@ -103,7 +104,7 @@ class Release:
                 "Could not find change log file. Create one first."
             )
             raise SystemExit
-        if "v{self.version}" not in self._change_lock_file.read_text():
+        if "v{self.version}" not in self._change_lock_file.read_text("utf-8"):
             logger.critical(
                 "You need to add the version v%s to the %s change log file",
                 self.version,
@@ -118,7 +119,9 @@ class Release:
             ("changelog", "whats-new"), (".rst", ".md")
         ):
             for search_pattern in (prefix, prefix.upper()):
-                for file in self.repo_dir.rglob("**/{prefix}*{suffix}"):
+                for file in self.repo_dir.rglob(
+                    "**/{search_pattern}*{suffix}"
+                ):
                     return file
         return Path(tempfile.mktemp())
 
@@ -150,11 +153,19 @@ class Release:
             description="Prepare the release of a package."
         )
         parser.add_argument("name", help="The name of the software/package.")
+        parser.add_argument("-v", "--verbose", help="Enable debug mode.")
         args = parser.parse_args()
+        if args.verbose:
+            logger.setLevel(logging.DEBUG)
         return cls(args.name, temp_dir)
 
 
 if __name__ == "__main__":
-    with tempfile.TemporaryDirectory() as temp_dir:
-        release = Release.cli(temp_dir)
-        release.tag_new_version("init")
+    with tempfile.TemporaryDirectory() as temporary_dir:
+        try:
+            release = Release.cli(temporary_dir)
+            release.tag_new_version("init")
+        except Exception as error:
+            if logger.getEffectiveLevel() == logging.DEBUG:
+                raise
+            logger.error("An error occurred: %s", error)

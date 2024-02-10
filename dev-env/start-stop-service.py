@@ -5,9 +5,9 @@ import logging
 import os
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 from typing import Optional
-import urllib.request
 
 # Set up logging
 logging.basicConfig(
