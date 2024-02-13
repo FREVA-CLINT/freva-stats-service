@@ -8,7 +8,6 @@ import tempfile
 from functools import cached_property
 from itertools import product
 from pathlib import Path
-from typing import Optional
 
 import git
 import tomli
@@ -117,7 +116,7 @@ class Release:
                 "Could not find change log file. Create one first."
             )
             raise SystemExit
-        if "v{self.version}" not in self._change_lock_file.read_text("utf-8"):
+        if f"v{self.version}" not in self._change_lock_file.read_text("utf-8"):
             logger.critical(
                 "You need to add the version v%s to the %s change log file",
                 self.version,
@@ -151,11 +150,18 @@ class Release:
             )
             raise SystemExit
         self._check_change_lock_file()
+        logger.info("Creating tag for version v%s", self.version)
         head = cloned_repo.head.reference
-        # cloned_repo.config_writer().release()
         message = f"Create a release for v{self.version}"
-        cloned_repo.create_tag(f"v{self.version}", ref=head, message=message)
-        # cloned_repo.git.push("--tags")
+        try:
+            cloned_repo.create_tag(
+                f"v{self.version}", ref=head, message=message
+            )
+            cloned_repo.git.push("--tags")
+        except git.GitCommandError as error:
+            logger.critical("Could not create tag: %s", error)
+            raise SystemExit
+        logger.info("Tags created.")
 
     @classmethod
     def cli(cls, temp_dir: str) -> "Release":

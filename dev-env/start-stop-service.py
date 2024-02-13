@@ -7,7 +7,6 @@ import subprocess
 import time
 import urllib.request
 from pathlib import Path
-from typing import Optional
 
 # Set up logging
 logging.basicConfig(
@@ -100,7 +99,9 @@ def kill_storage_service(
 
 def main() -> None:
     """Parse command line arguments and execute corresponding actions."""
-    parser = argparse.ArgumentParser(description="Manage storage-service process.")
+    parser = argparse.ArgumentParser(
+        description="Manage storage-service process."
+    )
     parser.add_argument(
         "--start", action="store_true", help="Start storage-service process."
     )
