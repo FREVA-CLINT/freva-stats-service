@@ -29,8 +29,11 @@ class Release:
 
     version_pattern: str = r'__version__\s*=\s*["\'](\d+\.\d+\.\d+)["\']'
 
-    def __init__(self, package_name: str, repo_dir: str) -> None:
+    def __init__(
+        self, package_name: str, repo_dir: str, branch: str = "main"
+    ) -> None:
 
+        self.branch = branch
         self.package_name = package_name
         self.repo_dir = Path(repo_dir)
         logger.info(
@@ -58,7 +61,9 @@ class Release:
         try:
             # Get the latest tag on the main branch
             return Version(
-                repo.git.describe("--tags", "--abbrev=0", "main").lstrip("v")
+                repo.git.describe("--tags", "--abbrev=0", self.branch).lstrip(
+                    "v"
+                )
             )
         except git.exc.GitCommandError:
             logger.debug("No tag found")
@@ -137,9 +142,9 @@ class Release:
                     return file
         return Path(tempfile.mktemp())
 
-    def tag_new_version(self, branch: str = "main") -> None:
+    def tag_new_version(self) -> None:
         """Tag a new git version."""
-        self._clone_repo_from_franch(branch)
+        self._clone_repo_from_franch(self.branch)
         cloned_repo = git.Repo(self.repo_dir)
         if self.version <= self.git_tag:
             logger.critical(
@@ -170,21 +175,39 @@ class Release:
         parser = argparse.ArgumentParser(
             description="Prepare the release of a package."
         )
-        parser.add_argument("name", help="The name of the software/package.")
-        parser.add_argument(
-            "-v", "--verbose", help="Enable debug mode.", action="store_true"
+        subparser = parser.add_subparsers(help="Available commands:")
+        tag_parser = subparser.add_parser("tag", help="Create a new tag")
+        deploy_parser = subparser.add_parser(
+            "deploy", help="Update the version in the deployment repository"
+        )
+        for _parser in tag_parser, deploy_parser:
+            _parser.add_argument(
+                "name", help="The name of the software/package."
+            )
+            _parser.add_argument(
+                "-v",
+                "--verbose",
+                help="Enable debug mode.",
+                action="store_true",
+            )
+        tag_parser.add_argument(
+            "-b",
+            "--branch",
+            help="Set the working branch",
+            type=str,
+            default="main",
         )
         args = parser.parse_args()
         if args.verbose:
             logger.setLevel(logging.DEBUG)
-        return cls(args.name, temp_dir)
+        return cls(args.name, temp_dir, args.branch)
 
 
 if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as temporary_dir:
         try:
             release = Release.cli(temporary_dir)
-            release.tag_new_version("init")
+            release.tag_new_version()
         except Exception as error:
             if logger.getEffectiveLevel() == logging.DEBUG:
                 raise
