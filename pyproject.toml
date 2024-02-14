@@ -87,15 +87,9 @@ legacy_tox_ini = """
 [tox]
 min_version = 4.0
 env_list = types, lint, test
+[testenv]
+parallel_show_output = false
 [testenv:test]
-setenv =
-    MONGO_HOST = localhost:27017
-    MONGO_DB = tests
-    MONGO_USERNAME = mongo
-    MONGO_PASSWORD = secret
-    API_USERNAME = freva
-    API_PASSWORD = secreto
-    DEBUG = 0
 deps = -e .
        mock
        httpx
@@ -127,4 +121,9 @@ deps = .
        mypy
        pytest-stub
 commands = mypy --install-types --non-interactive
+[testenv:tag]
+deps = git-python
+       packaging
+       tomli
+commands = python3 dev-env/release.py tag freva-storage-service  -b init
 """
