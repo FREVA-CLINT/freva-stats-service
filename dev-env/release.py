@@ -24,6 +24,27 @@ logging.basicConfig(
 logger = logging.getLogger("create-release")
 
 
+class Exit(Exception):
+    """Custom error class for representing specific errors.
+
+    Attributes:
+        message (str): A human-readable message describing the error.
+        code (int): An error code associated with the error.
+    """
+
+    def __init__(self, message: str, code: int = 1) -> None:
+        """Initialize the CustomError instance with the given message and error code.
+
+        Args:
+            message (str): A human-readable message describing the error.
+            code (int): An error code associated with the error.
+        """
+        super().__init__(message)
+        self.message = message
+        logger.critical(message)
+        raise SystemExit(code)
+
+
 class Release:
     """Release class."""
 
@@ -117,17 +138,14 @@ class Release:
         """Check if the current version was added to the change lock file."""
         logger.debug("Checking for change log file.")
         if not self._change_lock_file.is_file():
-            logger.critical(
-                "Could not find change log file. Create one first."
-            )
-            raise SystemExit
+            raise Exit("Could not find change log file. Create one first.")
         if f"v{self.version}" not in self._change_lock_file.read_text("utf-8"):
-            logger.critical(
-                "You need to add the version v%s to the %s change log file",
-                self.version,
-                self._change_lock_file.relative_to(self.repo_dir),
+            raise Exit(
+                "You need to add the version v{} to the {} change log file".format(
+                    self.version,
+                    self._change_lock_file.relative_to(self.repo_dir),
+                )
             )
-            raise SystemExit
 
     @cached_property
     def _change_lock_file(self) -> Path:
@@ -147,13 +165,13 @@ class Release:
         self._clone_repo_from_franch(self.branch)
         cloned_repo = git.Repo(self.repo_dir)
         if self.version <= self.git_tag:
-            logger.critical(
-                "Tag version: %s is the same as current version %s"
-                ", you need to bump the verion number first.",
-                self.version,
-                self.git_tag,
+            raise Exit(
+                "Tag version: {} is the same as current version {}"
+                ", you need to bump the verion number first.".format(
+                    self.version,
+                    self.git_tag,
+                )
             )
-            raise SystemExit
         self._check_change_lock_file()
         logger.info("Creating tag for version v%s", self.version)
         head = cloned_repo.head.reference
@@ -164,8 +182,7 @@ class Release:
             )
             cloned_repo.git.push("--tags")
         except git.GitCommandError as error:
-            logger.critical("Could not create tag: %s", error)
-            raise SystemExit
+            raise Exit("Could not create tag: {}".format(error))
         logger.info("Tags created.")
 
     @classmethod
@@ -211,4 +228,4 @@ if __name__ == "__main__":
         except Exception as error:
             if logger.getEffectiveLevel() == logging.DEBUG:
                 raise
-            logger.error("An error occurred: %s", error)
+            raise Exit("An error occurred: {}".format(error)) from error
