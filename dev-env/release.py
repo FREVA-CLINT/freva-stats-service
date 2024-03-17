@@ -138,12 +138,17 @@ class Release:
         """Check if the current version was added to the change lock file."""
         logger.debug("Checking for change log file.")
         if not self._change_lock_file.is_file():
-            raise Exit("Could not find change log file. Create one first.")
+            raise Exit(
+                "Could not find change log file. "
+                "Create one first and push it to the {self.branch}"
+            )
         if f"v{self.version}" not in self._change_lock_file.read_text("utf-8"):
             raise Exit(
-                "You need to add the version v{} to the {} change log file".format(
+                "You need to add the version v{} to the {} change log file "
+                "and push the update to the {} branch".format(
                     self.version,
                     self._change_lock_file.relative_to(self.repo_dir),
+                    self.branch,
                 )
             )
 
@@ -167,9 +172,11 @@ class Release:
         if self.version <= self.git_tag:
             raise Exit(
                 "Tag version: {} is the same as current version {}"
-                ", you need to bump the verion number first.".format(
+                ", you need to bump the verion number first and "
+                "push the changes to the {} branch".format(
                     self.version,
                     self.git_tag,
+                    self.branch,
                 )
             )
         self._check_change_lock_file()
