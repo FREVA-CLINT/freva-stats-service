@@ -1,7 +1,8 @@
 FROM python:latest as base
+ARG VERSION
 LABEL org.opencontainers.image.authors="DRKZ-CLINT"
 LABEL org.opencontainers.image.source="https://github.com/FREVA-CLINT/freva-storage-service.git"
-LABEL org.opencontainers.image.version=<VERSION>
+LABEL org.opencontainers.image.version="$VERSION"
 ENV API_PORT=8080\
     API_WORKER=8\
     API_USERNAME=\
