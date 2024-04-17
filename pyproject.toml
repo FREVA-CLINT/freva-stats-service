@@ -1,0 +1,133 @@
+[build-system]
+requires = ["flit_core >=3.2"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "freva-storage-service"
+authors = [{name = "DKRZ, Clint", email = "freva@dkrz.de"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+               "Development Status :: 3 - Alpha",
+               "Environment :: Console",
+               "Intended Audience :: Developers",
+               "Intended Audience :: Science/Research",
+               "License :: OSI Approved :: BSD License",
+               "Operating System :: POSIX :: Linux",
+               "Programming Language :: Python :: 3",
+]
+dynamic = ["version"]
+description = "Collect any kind of freva statistics."
+requires-python = ">=3.11"
+dependencies = [ "fastapi",
+             "jsonschema",
+             "python-multipart",
+             "setuptools",
+             "databrowser@git+https://github.com/FREVA-CLINT/databrowserAPI.git",
+             "python-jose[cryptography]",
+             "passlib[bcrypt]",
+             "typer",
+             "uvicorn",
+             "rich",
+             "motor",
+             "requests",
+]
+[project.optional-dependencies]
+dev = ["tox-battery", "flit"]
+[project.urls]
+# Documentation = "https://freva-deployment.readthedocs.io/en/latest/"
+Issues = "https://github.com/FREVA-CLINT/freva-storage-service/issues"
+Source = "https://github.com/FREVA-CLINT/freva-storage-service"
+
+[project.scripts]
+storage-service = "freva_storage_service.cli:main"
+
+[package-data]
+freva_storage_service = ["*.json.gz", "py.typed"]
+
+
+
+[tool.pytest.ini_options]
+env = [
+    "MONGO_HOST=localhost:27017",
+    "MONGO_DB=tests",
+    "MONGO_USERNAME=mongo",
+    "MONGO_PASSWORD=secret",
+    "API_USERNAME=freva",
+    "API_PASSWORD=secreto",
+    "DEBUG=0"
+]
+testspaths = [
+    "tests",
+    "./examples",
+]
+addopts = "-vv --cov=./src --cov-report=html:coverage_report --junitxml coverage.xml --cov-report xml"
+
+[tool.flake8]
+ignore = "F405"
+
+[tool.mypy]
+files = "src/freva_storage_service"
+strict = true
+warn_unused_ignores = true
+warn_unreachable = true
+show_error_codes = true
+install_types = true
+non_interactive = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+ignore_missing_imports = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+min_version = 4.0
+env_list = types, lint, test
+[testenv]
+parallel_show_output = false
+[testenv:test]
+deps = -e .
+       mock
+       httpx
+       nbval
+       pandas
+       matplotlib
+       pytest-asyncio
+       pytest-env
+       pytest-mock
+       pytest-cov
+
+commands_pre = python3 dev-env/start-stop-service.py --start
+commands_post = python3 dev-env/start-stop-service.py --kill
+commands =
+    pytest --nbval
+    python3 -m coverage report --fail-under=98.5 --precision=2
+[testenv:lint]
+deps = .
+       mypy
+       black
+       isort
+       flake8
+       pytest-stub
+commands =
+    isort --check --profile black -t py311 -l 79 src
+    flake8 src/freva_storage_service --count --max-complexity=8 --ignore=F405,W503 --max-line-length=88 --statistics --show-source
+[testenv:types]
+deps = .
+       mypy
+       pytest-stub
+commands = mypy --install-types --non-interactive
+[testenv:release]
+deps = git-python
+       packaging
+       requests
+       tomli
+allowlist_externals = rm
+commands_pre = curl -H 'Cache-Control: no-cache' -Ls -o bump.py https://raw.githubusercontent.com/FREVA-CLINT/freva-deployment/versions/release.py
+commands_post = rm bump.py
+commands = python3 bump.py tag databrowser -b docker-improvements
+"""

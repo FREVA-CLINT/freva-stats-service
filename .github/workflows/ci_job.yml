@@ -1,0 +1,92 @@
+name: CI Tests
+
+permissions:
+  pull-requests: write
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+        max-parallel: 10
+        matrix:
+          python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up services
+        run: |
+          docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
+      - name: Install dependencies
+        run: python3 -m pip install tox
+      - name: Run all tests with tox
+        run: tox -p 3
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+          flags: unittests
+
+  build-docker-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up services
+        run: |
+          docker-compose -f dev-env/docker-compose.yaml up -d --remove-orphans
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build freva-storage-service image
+        uses: docker/build-push-action@v4
+        with:
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: freva-storage-service
+
+      - name: Check freva-storage-service image
+        run: python3 dev-env/start-stop-service.py --docker
+
+  dependabot:
+    name: Merge PR by dependabot
+    runs-on: ubuntu-latest
+    needs: [ci, build-docker-image]
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Approve dependabot's PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.TOKEN}}
+      - name: Auto-merge for dependabot's PR
+        run: gh pr merge --merge --auto "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.TOKEN}}

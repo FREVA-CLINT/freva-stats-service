@@ -1,0 +1,9 @@
+version: 2
+secret:
+  ignored-paths:
+    - 'pyproject.toml'
+  ignored-matches:
+    - name:
+      match: c05f5be7c947afb3da1697aa6715e3005ff0bcafc54a60b7cb6ca8917792268e
+    - name:
+      match: 0441f00ee11ede52fad149b21651dd6766133652cb2ea923c4beef17ac1b86c1
