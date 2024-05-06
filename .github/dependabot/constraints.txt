@@ -1,7 +1,7 @@
 fastapi==0.111.0
 jsonschema==4.21.1
 motor==3.3.2
-python-multipart==0.0.7
+python-multipart==0.0.9
 python-jose==3.3.0
 passlib==1.7.4
 requests==2.31.0.20240125
